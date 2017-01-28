@@ -38,12 +38,3 @@ while True:
         for c in connections:
             if c != address:
                 s.sendto(data, c)
-
-    print ("Test")
-    print ("Test")
-    print ("Test")
-    print ("Test")
-    print ("Test")
-    print ("Test")
-    print ("tommybranch -> dev branch -> master branch")
-    print ("DEVELOPMENT BRANCH")
