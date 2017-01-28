@@ -468,7 +468,14 @@
       <option name="project" value="LOCAL" />
       <updated>1485612567414</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Made a ToDo list for develoment branch">
+      <created>1485613032749</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1485613032749</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -534,7 +541,8 @@
     <MESSAGE value="deleted files" />
     <MESSAGE value="Version 0.1 release" />
     <MESSAGE value="Testing branching" />
-    <option name="LAST_COMMIT_MESSAGE" value="Testing branching" />
+    <MESSAGE value="Made a ToDo list for develoment branch" />
+    <option name="LAST_COMMIT_MESSAGE" value="Made a ToDo list for develoment branch" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
