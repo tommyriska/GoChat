@@ -7,5 +7,6 @@
 - [ ] Your own name shows up before your message
 - [ ] Clear the screen before startup/welcome message
 - [ ] Timestamps on messages
+
 ####Networking
 - [ ] Change from UDP to TCP connections
