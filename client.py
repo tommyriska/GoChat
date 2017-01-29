@@ -1,21 +1,35 @@
 import socket
 import sys
 from threading import Thread
+from colorama import *
+import time
 
 # Server IP and socket
-UDP_IP = "10.224.240.67"
-UDP_PORT = 5005
+TCP_IP = "192.168.0.20"
+TCP_PORT = 5001
+BUFFERSIZE = 1024
+
 
 # Create socket
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.setblocking(0)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((TCP_IP, TCP_PORT))
+# Send connection code
+s.send("1a92?#qQ,=11")
 
+#Startup message
+print (Fore.LIGHTMAGENTA_EX + '//////////////////////////////////////////////////')
+print (Fore.LIGHTMAGENTA_EX + "//  ______ _                   _           _    //")
+print (Fore.LIGHTMAGENTA_EX + "// |  ____(_)                 | |         | |   //")
+print (Fore.LIGHTMAGENTA_EX + "// | |__   _ ___ ___  ___  ___| |__   __ _| |_  //")
+print (Fore.LIGHTMAGENTA_EX + "// |  __| | / __/ __|/ _ \/ __| '_ \ / _` | __| //")
+print (Fore.LIGHTMAGENTA_EX + "// | |    | \__ \__ \  __/ (__| | | | (_| | |_  //")
+print (Fore.LIGHTMAGENTA_EX + "// |_|    |_|___/___/\___|\___|_| |_|\__,_|\__| //")
+print (Fore.LIGHTMAGENTA_EX + "//                                              //")
+print (Fore.LIGHTMAGENTA_EX + "//////////////////////////////////////////////////")
+print (Style.RESET_ALL)
+print " "
 print "\nWelcome to fissechat!\nType !help to see commands.\n"
 nickName = raw_input("Choose a nickname: ")
-
-# Send connection code
-s.sendto("1a92?#qQ,=11", (UDP_IP, UDP_PORT))
-
 
 def helpCommand():
     print "--Commands: ",  "\n--!help shows this list", "\n--!list lists connected users", "\n--!name change your nickname", "\n--!quit quit"
@@ -29,15 +43,14 @@ def nameCommand():
     global nickName
     oldName = nickName
     nickName = raw_input("Choose a nickname: ")
-    s.sendto(oldName + " changed name to " + nickName, (UDP_IP, UDP_PORT))
+    s.sendall(oldName + " changed name to " + nickName)
 
 
 def quitCommand():
-    s.sendto("10n0m0001", (UDP_IP, UDP_PORT))
+    s.sendall("10n0m0001", (TCP_IP, TCP_PORT))
     sys.exit()
 
 commandList = {"!help": helpCommand, "!list": listCommand, "!name": nameCommand, "!quit": quitCommand}
-
 
 def inputChecker(input):
     try:
@@ -54,10 +67,10 @@ def inputChecker(input):
 def chatListener():
     while True:
         try:
-            data, address = s.recvfrom(1024)
+            data, address = s.recv(1024)
             print data
         except socket.error:
-            False
+            return False
 
 listenerThread = Thread(target=chatListener)
 listenerThread.start()
@@ -65,9 +78,9 @@ listenerThread.start()
 
 def inputListener():
     while True:
-        message = raw_input()
+        message = raw_input(nickName + "-> ")
         if not inputChecker(message):
-            s.sendto(nickName + ": " + message, (UDP_IP, UDP_PORT))
+            s.sendall(nickName + ": " + message)
 
 inputThread = Thread(target=inputListener)
 inputThread.start()
