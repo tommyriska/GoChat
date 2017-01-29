@@ -3,10 +3,10 @@
 
 ####Design:
 - [x] Add ASCII-art
-- [ ] Change design
-- [ ] Your own name shows up before your message
+- [ ] Let users choose text color for their own chat
+- [x] Your own name shows up before your message
 - [ ] Clear the screen before startup/welcome message
 - [ ] Timestamps on messages
 
 ####Networking
-- [ ] Change from UDP to TCP connections
+- [x] Change from UDP to TCP connections
