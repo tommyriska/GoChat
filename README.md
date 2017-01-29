@@ -29,3 +29,9 @@
 - [ ] Problem 4
 - [ ] Problem 5
 - [ ] Problem 6
+
+#### Suggestions for gitflow
+
+- Everyone makes branches for one fix
+- We always merge into development branch before pushing a full release to master
+- Merges to master should always contain a functional version of this software
