@@ -1,4 +1,3 @@
-# Development branch
 ### To do's for version 0.2:
 
 ####Design:
