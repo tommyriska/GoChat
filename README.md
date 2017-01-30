@@ -44,7 +44,6 @@
 - [x] Add !help command for client
 - [ ] Add !list command for client
 - [x] Add !quit command for client
-- [ ] Add command functions for client module
 
 #### Known problems
 
