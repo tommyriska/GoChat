@@ -15,16 +15,16 @@
 
 - [ ] Add some sort of encryption to secure all data is private
 - [ ] Let users specify ip and port to connect to
-- [ ]
-- [ ]
+- [ ] Add command functions for server module
+- [ ] Add command functions for client module
 - [ ]
 - [ ]
 - [ ]
 - [ ]
 
 #### Known problems
-- [ ] Problem 1
-- [ ] Problem 2
+- [ ] Server wont accept two connections at the same time
+- [ ] Cannot restart server on the same host or port as last initiation
 - [ ] Problem 3
 - [ ] Problem 4
 - [ ] Problem 5
