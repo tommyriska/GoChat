@@ -24,7 +24,6 @@
 #### Known problems
 - Server wont accept two connections at the same time
 - Cannot restart server on the same host or port as last initiation
-- 
 
 ## Server
 
