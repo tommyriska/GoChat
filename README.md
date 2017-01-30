@@ -47,10 +47,12 @@
 - [ ] Add command functions for client module
 
 #### Known problems
+
 - Server wont accept two connections at the same time
+    - FIXED 30.01.17: Added threading for both messages and connections. Also, maximum amount of listening connections was changed from 1 to 50 000.
+
+- Cannot restart server on the same host or port as last initiation
     - FIXED 30.01.17: Had to set socket options so that the socket made the address [reusable](https://docs.python.org/2/library/socket.html#socket.socket.getsockopt).
-- Cannot restart server on the same host or port as last initiation 
-- 
 
 #### Suggestions for gitflow
 
