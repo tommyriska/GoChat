@@ -100,7 +100,7 @@ def inputListener():
 inputThread = Thread(target=inputListener)
 inputThread.start()
 
-#Server loop
+# Server loop
 while True:
     c, address = s.accept()
     connectionThread = Thread(target=onNewClient(c, address))

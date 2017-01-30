@@ -22,7 +22,9 @@
 - [ ] Add command functions for client module
 
 #### Known problems
-- No known problems right now
+- Client can send empty messages, needs a new if check to check for empty data
+
+- Quit command does not properly close terminal/cmd window
 
 ## Server
 
@@ -51,6 +53,10 @@
 
 - Cannot restart server on the same host or port as last initiation
     - FIXED 30.01.17: Had to set socket options so that the socket made the address [reusable](https://docs.python.org/2/library/socket.html#socket.socket.getsockopt).
+
+- Server cant write messages to other clients.
+
+- Quit command does not properly close terminal/cmd window
 
 #### Suggestions for gitflow
 
