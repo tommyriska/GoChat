@@ -12,15 +12,10 @@
 - [x] Change from UDP to TCP connections
 
 #### Other features
-
 - [ ] Add some sort of encryption to secure all data is private
 - [ ] Let users specify ip and port to connect to
 - [ ] Add command functions for server module
 - [ ] Add command functions for client module
-- [ ]
-- [ ]
-- [ ]
-- [ ]
 
 #### Known problems
 - [ ] Server wont accept two connections at the same time
