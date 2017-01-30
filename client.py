@@ -18,14 +18,14 @@ s.send("1a92?#qQ,=11")
 
 #Startup message
 print (Fore.LIGHTMAGENTA_EX + '//////////////////////////////////////////////////')
-print (Fore.LIGHTMAGENTA_EX + "//  ______ _                   _           _    //")
-print (Fore.LIGHTMAGENTA_EX + "// |  ____(_)                 | |         | |   //")
-print (Fore.LIGHTMAGENTA_EX + "// | |__   _ ___ ___  ___  ___| |__   __ _| |_  //")
-print (Fore.LIGHTMAGENTA_EX + "// |  __| | / __/ __|/ _ \/ __| '_ \ / _` | __| //")
-print (Fore.LIGHTMAGENTA_EX + "// | |    | \__ \__ \  __/ (__| | | | (_| | |_  //")
-print (Fore.LIGHTMAGENTA_EX + "// |_|    |_|___/___/\___|\___|_| |_|\__,_|\__| //")
-print (Fore.LIGHTMAGENTA_EX + "//                                              //")
-print (Fore.LIGHTMAGENTA_EX + "//////////////////////////////////////////////////")
+print ("//  ______ _                   _           _    //")
+print ("// |  ____(_)                 | |         | |   //")
+print ("// | |__   _ ___ ___  ___  ___| |__   __ _| |_  //")
+print ("// |  __| | / __/ __|/ _ \/ __| '_ \ / _` | __| //")
+print ("// | |    | \__ \__ \  __/ (__| | | | (_| | |_  //")
+print ("// |_|    |_|___/___/\___|\___|_| |_|\__,_|\__| //")
+print ("//                                              //")
+print ("//////////////////////////////////////////////////")
 print (Style.RESET_ALL)
 print " "
 print "\nWelcome to fissechat!\nType !help to see commands.\n"

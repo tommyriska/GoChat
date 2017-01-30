@@ -3,6 +3,8 @@ from threading import Thread
 from colorama import *
 import time
 import sys
+import os
+import signal
 
 #Startup message
 print (Fore.LIGHTMAGENTA_EX + '//////////////////////////////////////////////////')
@@ -28,10 +30,11 @@ def listCommand():
         print str(con)
 
 def quitCommand():
+    if len(connections) >= 1:
+        s.shutdown(socket.SHUT_RDWR)
     s.close()
-    print "Server is shutdown"
-    sys.exit()
-
+    print "Server is shut down"
+    os.kill(os.getppid(), signal.SIGHUP)
 
 # Command list
 commandList = {"!help": helpCommand, "!list": listCommand, "!quit": quitCommand}
@@ -47,7 +50,7 @@ def inputChecker(input):
     except IndexError:
         return False
 
-def onNewClient(clientsocket, addr):
+def onNewClient(clientsocket, address):
     while True:
         data = clientsocket.recv(BUFFERSIZE)
         # Check for connection code

@@ -19,7 +19,8 @@
 - [x] Add !help command
 - [x] Add !list command
 - [x] Add !quit command
-- [ ] Add command functions for client module
+- [ ] Add error handling for server shutdown
+
 
 #### Known problems
 - Client can send empty messages, needs a new if check to check for empty data
@@ -38,13 +39,15 @@
 
 #### Networking
 - [x] Change from UDP to TCP connections
+- [ ] Add ability to disconnect all clients on server stop/restart
 
 #### Other features
 - [ ] Add some sort of encryption to secure all data is private
 - [ ] Let users specify ip and port to connect to
-- [x] Add !help command for client
-- [ ] Add !list command for client
-- [x] Add !quit command for client
+- [x] Add !help command
+- [ ] Add !list command
+- [x] Add !quit command
+- [ ] Add !restart command
 
 #### Known problems
 
@@ -57,6 +60,7 @@
 - Server cant write messages to other clients.
 
 - Quit command does not properly close terminal/cmd window
+    - Possibly fixed with os kill process command. May need some more rework to function properly. Fix of today may not work if ability to restart server is added.
 
 #### Suggestions for gitflow
 
