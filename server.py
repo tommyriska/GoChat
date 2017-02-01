@@ -2,6 +2,9 @@ import socket
 from threading import Thread
 from colorama import *
 import time
+import sys
+import os
+import signal
 
 #Startup message
 print (Fore.LIGHTMAGENTA_EX + '//////////////////////////////////////////////////')
@@ -23,16 +26,18 @@ def helpCommand():
     print "--Commands: ", "\n--!help Shows this list", "\n--!list Lists connected users", "\n--!quit Disconnects from the chat"
 
 def listCommand():
-    printConn()
+    for con in connections:
+        print str(con)
 
 def quitCommand():
-    print "Add some function here"
+    if len(connections) >= 1:
+        s.shutdown(socket.SHUT_RDWR)
+    s.close()
+    print "Server is shut down"
+    os.kill(os.getppid(), signal.SIGHUP)
+
 # Command list
 commandList = {"!help": helpCommand, "!list": listCommand, "!quit": quitCommand}
-
-def printConn():
-    for c in connections:
-        print address
 
 def inputChecker(input):
     try:
@@ -45,7 +50,7 @@ def inputChecker(input):
     except IndexError:
         return False
 
-def onNewClient(clientsocket, addr):
+def onNewClient(clientsocket, address):
     while True:
         data = clientsocket.recv(BUFFERSIZE)
         # Check for connection code
@@ -69,7 +74,7 @@ def onNewClient(clientsocket, addr):
                 if c != address:
                     s.sendall(data, c)
                     s.close()
-#Connections list
+# Connections list
 connections = []
 
 # Server IP and socket
@@ -80,6 +85,7 @@ BUFFERSIZE = 20
 
 # Create and bind socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((TCP_IP, TCP_PORT))
 s.listen(50000)
 
@@ -97,7 +103,7 @@ def inputListener():
 inputThread = Thread(target=inputListener)
 inputThread.start()
 
-#Server loop
+# Server loop
 while True:
     c, address = s.accept()
     connectionThread = Thread(target=onNewClient(c, address))
