@@ -73,8 +73,8 @@ def onNewClient(clientsocket, addr):
 connections = []
 
 # Server IP and socket
-TCP_IP = ''
-TCP_PORT = 5006
+TCP_IP = "10.224.211.230"
+TCP_PORT = 5005
 BUFFERSIZE = 20
 
 
@@ -102,6 +102,7 @@ while True:
     c, address = s.accept()
     connectionThread = Thread(target=onNewClient(c, address))
     connectionThread.start()
+
 
 
 

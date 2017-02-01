@@ -5,8 +5,8 @@ from colorama import *
 import time
 
 # Server IP and socket
-TCP_IP = "192.168.0.20"
-TCP_PORT = 5006
+TCP_IP = "10.224.211.230"
+TCP_PORT = 5005
 BUFFERSIZE = 1024
 
 
