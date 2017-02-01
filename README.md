@@ -1,4 +1,6 @@
-### Future features
+#Future features
+
+## Client
 
 #### Design:
 - [x] Add ASCII-art
@@ -12,23 +14,52 @@
 - [x] Change from UDP to TCP connections
 
 #### Other features
-
 - [ ] Add some sort of encryption to secure all data is private
 - [ ] Let users specify ip and port to connect to
-- [ ] Add command functions for server module
-- [ ] Add command functions for client module
-- [ ]
-- [ ]
-- [ ]
-- [ ]
+- [x] Add !help command
+- [x] Add !list command
+- [x] Add !quit command
+- [ ] Add error handling for server shutdown
+
 
 #### Known problems
-- [ ] Server wont accept two connections at the same time
-- [ ] Cannot restart server on the same host or port as last initiation
-- [ ] Problem 3
-- [ ] Problem 4
-- [ ] Problem 5
-- [ ] Problem 6
+- Client can send empty messages, needs a new if check to check for empty data
+
+- Quit command does not properly close terminal/cmd window
+
+## Server
+
+#### Design:
+- [x] Add ASCII-art
+- [x] Your own name shows up before your message
+- [ ] Clear the screen before startup/welcome message
+- [ ] Timestamps on messages
+- [ ] Create a GUI
+
+#### Networking
+- [x] Change from UDP to TCP connections
+- [ ] Add ability to disconnect all clients on server stop/restart
+
+#### Other features
+- [ ] Add some sort of encryption to secure all data is private
+- [ ] Let users specify ip and port to connect to
+- [x] Add !help command
+- [ ] Add !list command
+- [x] Add !quit command
+- [ ] Add !restart command
+
+#### Known problems
+
+- Server wont accept two connections at the same time
+    - FIXED 30.01.17: Added threading for both messages and connections. Also, maximum amount of listening connections was changed from 1 to 50 000.
+
+- Cannot restart server on the same host or port as last initiation
+    - FIXED 30.01.17: Had to set socket options so that the socket made the address [reusable](https://docs.python.org/2/library/socket.html#socket.socket.getsockopt).
+
+- Server cant write messages to other clients.
+
+- Quit command does not properly close terminal/cmd window
+    - Possibly fixed with os kill process command. May need some more rework to function properly. Fix of today may not work if ability to restart server is added.
 
 #### Suggestions for gitflow
 
