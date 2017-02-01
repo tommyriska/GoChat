@@ -6,7 +6,7 @@ import time
 
 # Server IP and socket
 TCP_IP = "10.224.211.230"
-TCP_PORT = 5005
+TCP_PORT = 5002
 BUFFERSIZE = 1024
 
 
