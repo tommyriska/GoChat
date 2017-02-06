@@ -5,8 +5,8 @@ from colorama import *
 import time
 
 # Server IP and socket
-TCP_IP = "10.224.211.230"
-TCP_PORT = 5002
+TCP_IP = "" #IP to connect to
+TCP_PORT = 5002 #Port to connect to
 BUFFERSIZE = 1024
 
 
@@ -17,18 +17,19 @@ s.connect((TCP_IP, TCP_PORT))
 s.send("1a92?#qQ,=11")
 
 #Startup message
-print (Fore.LIGHTMAGENTA_EX + '//////////////////////////////////////////////////')
-print ("//  ______ _                   _           _    //")
-print ("// |  ____(_)                 | |         | |   //")
-print ("// | |__   _ ___ ___  ___  ___| |__   __ _| |_  //")
-print ("// |  __| | / __/ __|/ _ \/ __| '_ \ / _` | __| //")
-print ("// | |    | \__ \__ \  __/ (__| | | | (_| | |_  //")
-print ("// |_|    |_|___/___/\___|\___|_| |_|\__,_|\__| //")
-print ("//                                              //")
-print ("//////////////////////////////////////////////////")
+print (Fore.LIGHTMAGENTA_EX + """//////////////////////////////////////////
+//  _____        _____ _           _    //
+// |  __ \      / ____| |         | |   //
+// | |__) |   _| |    | |__   __ _| |_  //
+// |  ___/ | | | |    | '_ \ / _` | __| //
+// | |   | |_| | |____| | | | (_| | |_  //
+// |_|    \__, |\_____|_| |_|\__,_|\__| //
+//         __/ |                        //
+//        |___/                         //
+//////////////////////////////////////////""")
 print (Style.RESET_ALL)
 print " "
-print "\nWelcome to fissechat!\nType !help to see commands.\n"
+print "\nWelcome to PyChat!\nType !help to see commands.\n"
 nickName = raw_input("Choose a nickname: ")
 
 def helpCommand():
