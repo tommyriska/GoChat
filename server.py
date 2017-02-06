@@ -1,7 +1,7 @@
 import socket
 
 # Server IP and socket
-UDP_IP = "10.224.218.199"
+UDP_IP = "10.224.209.209"
 UDP_PORT = 5005
 
 # Create and bind socket
@@ -38,11 +38,3 @@ while True:
         for c in connections:
             if c != address:
                 s.sendto(data, c)
-
-    print ("Test")
-    print ("Test")
-    print ("Test")
-    print ("Test")
-    print ("Test")
-    print ("Test")
-    print ("testtest")
