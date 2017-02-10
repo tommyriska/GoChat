@@ -102,12 +102,9 @@ def inputListener():
         if not inputChecker(message):
             s.sendall(nickName + ": " + message)
 
-
-inputThread = Thread(target=inputListener)
-inputThread.start()
-
 # Server loop
 while True:
     c, address = s.accept()
+
     connectionThread = Thread(target=onNewClient(c, address))
     connectionThread.start()

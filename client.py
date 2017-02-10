@@ -4,9 +4,11 @@ from threading import Thread
 from colorama import *
 import time
 
+
+# CLIENT NEEDS A WAY TO SPECIFY IP AND PORT, REWRITE!
 # Server IP and socket
-TCP_IP = "" #IP to connect to
-TCP_PORT = 5002 #Port to connect to
+TCP_IP = "192.168.0.20" #IP to connect to
+TCP_PORT = 5005 #Port to connect to
 BUFFERSIZE = 1024
 
 
