@@ -20,23 +20,23 @@ print (Fore.LIGHTMAGENTA_EX + """//////////////////////////////////////////
 //        |___/                         //
 //////////////////////////////////////////""")
 print (Style.RESET_ALL)
-print " "
+print (" ")
 
 nickName = "SERVER"
 
 # Command functions
 def helpCommand():
-    print "--Commands: ", "\n--!help Shows this list", "\n--!list Lists connected users", "\n--!quit Disconnects from the chat"
+    print ("--Commands: ", "\n--!help Shows this list", "\n--!list Lists connected users", "\n--!quit Disconnects from the chat")
 
 def listCommand():
     for con in connections:
-        print str(con)
+        print (str(con))
 
 def quitCommand():
     if len(connections) >= 1:
         s.shutdown(socket.SHUT_RDWR)
     s.close()
-    print "Server is shut down"
+    print ("Server is shut down")
     os.kill(os.getppid(), signal.SIGHUP)
 
 # Command list
@@ -61,16 +61,16 @@ def onNewClient(clientsocket, address):
             # Add IP to connections
             if address not in connections:
                 connections.append(address)
-                print address, " connected"
+                print(address, " connected")
 
         elif data == "10n0m0001":
             if address in connections:
                 connections.remove(address)
-                print address, " disconnected"
+                print(address, " disconnected")
 
         # If not, print message
         else:
-            print address, " ", data
+            print(address, " ", data)
 
             # Send message to all connections
             for c in connections:
@@ -93,12 +93,12 @@ s.bind((TCP_IP, TCP_PORT))
 s.listen(50000)
 
 # Some more informative messages
-print "Server is running at ", TCP_IP, ": ", TCP_PORT
-print "Waiting for connections.."
+print("Server is running at ", TCP_IP, ": ", TCP_PORT)
+print("Waiting for connections..")
 
 def inputListener():
     while True:
-        message = raw_input(nickName + "-> ")
+        message = input(nickName + "-> ")
         if not inputChecker(message):
             s.sendall(nickName + ": " + message)
 
