@@ -1,7 +1,7 @@
 import socket
 
 # Server IP and socket
-UDP_IP = "10.224.209.209"
+UDP_IP = "10.224.210.40"
 UDP_PORT = 5005
 
 # Create and bind socket
