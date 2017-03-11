@@ -3,14 +3,14 @@ import sys
 from threading import Thread
 
 # Server IP and socket
-UDP_IP = "10.224.240.67"
+UDP_IP = "10.224.210.40"
 UDP_PORT = 5005
 
 # Create socket
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.setblocking(0)
 
-print "\nWelcome to fissechat!\nType !help to see commands.\n"
+print "\nWelcome to pythonchat!\nType !help to see commands.\n"
 nickName = raw_input("Choose a nickname: ")
 
 # Send connection code
