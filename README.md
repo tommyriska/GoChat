@@ -1,6 +1,6 @@
 
 # What is PythonChat?
-A studentproject where the goal is to develop a chat-service which will use AES encryption to protect the users and their messages. 
+A student project where the goal is to develop a chat-service which will use encryption to protect the users and their messages. 
 
 
 # How does PythonChat work?
@@ -20,7 +20,7 @@ We target people that care about their own privacy and want a fast, simple and s
 # Instructions for developers
 Our project is developed on Python and GoLang. The first prototype is only written in Python, but we have decided to use GoLang for further development. Feedback from the community have stated that use of threads and encryption libraries are easy to use in GoLang, and that GoLang supports multithreading. GoLang is also a very fast programming language, and we want to take advantage of that. 
 
-You should check the following before submitting any code to the project. Be aware that you need to be added by admin before contributing. 
+You should check the following before submitting any code to the project. Be aware that you need to be added by admin before you have the opportunity to contribute with code.  
 
 * code is tested 
 * code is well documented with comments to each method
