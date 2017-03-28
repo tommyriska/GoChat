@@ -7,6 +7,7 @@ import (
 )
 
 var clients []Client
+var key []byte
 
 type Client struct {
 	connection net.Conn
@@ -17,7 +18,7 @@ func (c *Client) send(message []byte) {
 }
 
 func (c *Client) listener() {
-	c.send([]byte("test" + "\n"))
+	c.send([]byte(key))
 	for {
 		message, _ := bufio.NewReader(c.connection).ReadString('\n')
 		if len(message) > 0 {
@@ -39,7 +40,8 @@ func (c *Client) startThread() {
 func main() {
 	ln, _ := net.Listen("tcp", ":8081")
 	fmt.Println("Server is listening on " + ln.Addr().String())
-
+	key = []byte("example key 1234") // Must be 16,24 or 32 bytes
+	fmt.Println("A new key is created!")
 	for {
 		conn, _ := ln.Accept()
 		newClient := Client{connection: conn}

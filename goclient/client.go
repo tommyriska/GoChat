@@ -24,7 +24,7 @@ func main() {
 
 func listener(conn net.Conn) {
 	for {
-		message, _ := bufio.NewReader(conn).ReadString('\n')
-		fmt.Print(message)
+		plaintext, _ := bufio.NewReader(conn).ReadString('\n')
+		fmt.Print(plaintext)
 	}
 }
