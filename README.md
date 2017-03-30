@@ -10,6 +10,9 @@
   If you want to contribute to this project, feel free to make a pull request and we will review it as fast as possible.
 
 ## License
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
 
 [ed562d5e]: https://en.wikipedia.org/wiki/Advanced_Encryption_Standard "Advanced Encryption Standard"
 
