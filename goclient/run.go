@@ -14,8 +14,6 @@ func main() {
 	fmt.Println("Connected to server.")
 	// get key
 	key, _ = bufio.NewReader(conn).ReadString('\n')
-
-	// get key
 	keyMsg := []byte(key)
 	byteKey := keyMsg[0 : len(keyMsg)-1]
 
