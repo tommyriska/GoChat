@@ -10,11 +10,10 @@ import (
 func main() {
 	var key string
 	// connect to server
-	conn, _ := net.Dial("tcp", "158.37.63.27:8081")
-
+	conn, _ := net.Dial("tcp", "localhost:8081")
+	fmt.Println("Connected to server.")
 	// get key
 	key, _ = bufio.NewReader(conn).ReadString('\n')
-	fmt.Print("Key: " + key)
 
 	// get key
 	keyMsg := []byte(key)
