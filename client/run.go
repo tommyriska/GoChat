@@ -10,13 +10,10 @@ import (
 	"io"
 	"net"
 	"os"
-
-	"github.com/jroimartin/gocui"
+	"strings"
 )
 
 func main() {
-	g, _ := gocui.NewGui(gocui.OutputNormal)
-
 	var key string
 	// connect to server
 	conn, err := net.Dial("tcp", "localhost:8081")
@@ -39,10 +36,12 @@ func main() {
 		// read in input from stdin
 		reader := bufio.NewReader(os.Stdin)
 		text, _ := reader.ReadString('\n')
-		cryptText := encrypt(byteKey, text)
+		if !checkForCmd(conn, text) {
+			cryptText := encrypt(byteKey, text)
 
-		// send to socket
-		fmt.Fprintf(conn, cryptText+"\n")
+			// send to socket
+			fmt.Fprintf(conn, cryptText+"\n")
+		}
 	}
 }
 
@@ -53,6 +52,24 @@ func listener(conn net.Conn, key []byte) {
 		msg := decrypt(key, message)
 		fmt.Print(msg)
 	}
+}
+
+func quit(conn net.Conn) {
+	conn.Close()
+	os.Exit(1)
+}
+
+// check for command
+func checkForCmd(conn net.Conn, msg string) bool {
+	if len(msg) > 1 {
+		words := strings.Split(msg[0:len(msg)-1], " ")
+		switch words[0] {
+		case "!quit":
+			quit(conn)
+			return true
+		}
+	}
+	return false
 }
 
 func encrypt(key []byte, text string) string {
