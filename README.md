@@ -6,6 +6,12 @@
 ## How does GoChat work?
   As of latest build we have implemented the [AES][ed562d5e] (Advanced Encryption Standard) encryption which is still considered safe as of 2017. The AES 256 bits implementation is a standard that is still in use by the US government for their [top secret documents][813bf0e5]. In a later build we want to implement RSA encryption which essentially is a public-key cryptosystem.
 
+  ![Example]("http://bildr.no/image/VlhKMUIy.jpeg")
+
+## How to set up and use GoChat
+  To be announced.
+
+
 ## Instructions for developers
   If you want to contribute to this project, feel free to make a pull request and we will review it as fast as possible.
 
