@@ -1,4 +1,4 @@
-# PythonChat, made with GoLang
+# GoChat, an encrypted chat made with GoLang
 
 ## What is GoChat and who uses it?
   GoChat is a simple encrypted chat with focus on privacy. This is a free to use service for anyone who needs a private chat between two or more parties.
@@ -12,6 +12,9 @@
 ## Instructions for developers
   If you want to contribute to this project, feel free to make a pull request and we will review it as fast as possible.
 
+## Note:
+  We have some issues with the Windows platform as of now where users cant start the chat. Therefore we don't recommend using that until it is fixed.
+  
 ## License
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
