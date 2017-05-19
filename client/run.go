@@ -15,7 +15,7 @@ import (
 
 func main() {
 	var key string
-	// connect to server
+	// connect to server!
 	conn, err := net.Dial("tcp", "localhost:8081")
 	if err != nil {
 		fmt.Println("Can't find server.")
