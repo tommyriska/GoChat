@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-/* *** EVERY TEST MUST BE RUN INDIVIDUALLY *** */
+/* ***** EVERY TEST MUST BE RUN INDIVIDUALLY ***** */
 
 /* test will check if the key array that is created
 		on the server is the correct size (32 bytes) */
