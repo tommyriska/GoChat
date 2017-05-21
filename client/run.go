@@ -14,6 +14,10 @@ import (
 )
 
 func main() {
+	startClient()
+}
+
+func startClient(){
 	var key string
 	// connect to server!
 	conn, err := net.Dial("tcp", "localhost:8081")

@@ -64,7 +64,7 @@ func (c *Client) startThread() {
 	go c.listener()
 }
 
-func main() {
+func startServer(){
 	// create key
 	key = createKey()
 
@@ -88,6 +88,10 @@ func main() {
 		fmt.Println(conn.RemoteAddr().String() + " connected.")
 		switchRoom(newClient, rooms[0])
 	}
+}
+
+func main() {
+	startServer()
 }
 
 // check for command
