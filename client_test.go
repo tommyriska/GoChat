@@ -4,6 +4,8 @@ import (
 	"testing"
 )
 
+/* *** EVERY TEST MUST BE RUN INDIVIDUALLY *** */
+
 /* test will check if a string variable is altered after
 method call (encrypted) */
 func TestEncrypt(t *testing.T) {
