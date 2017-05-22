@@ -16,14 +16,13 @@ func TestCreateKey(t *testing.T) {
 		totalByte++
 	}
 
-	fmt.Println("Total byte i array --> ")
-	fmt.Println(totalByte)
+	fmt.Println("Total byte i array --> ", totalByte)
 
 	if totalByte < 32 {
-		t.Error("Expected 32, got: " totalByte)
+		t.Error("Expected 32, got: ", totalByte)
 	}
 	if totalByte > 32 {
-		t.Error("Expected 32. got: " totalByte)
+		t.Error("Expected 32. got: ", totalByte)
 	}
 }
 
