@@ -51,3 +51,21 @@ func TestDecrypt(t *testing.T) {
 		t.Error("Expected new text, got same")
 	}
 }
+
+/* test will check if a new room object is added correctly
+	to the room array */
+func TestMakeRoom(t *testing.T) {
+
+	var n string = "testname"
+	var m string = "testMessage"
+
+	newRoom := Room{name: n, welcomeMsg: m}
+	rooms = append(rooms, newRoom)
+
+	for i := range rooms {
+		if rooms[i] == newRoom {
+			fmt.Println("New room added succesfully.")
+		}
+	}
+	fmt.Println("New room not added to array.")
+}
