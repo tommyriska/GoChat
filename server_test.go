@@ -58,6 +58,7 @@ func TestMakeRoom(t *testing.T) {
 
 	var n string = "testname"
 	var m string = "testMessage"
+	var b bool = false
 
 	newRoom := Room{name: n, welcomeMsg: m}
 	rooms = append(rooms, newRoom)
@@ -65,7 +66,10 @@ func TestMakeRoom(t *testing.T) {
 	for i := range rooms {
 		if rooms[i] == newRoom {
 			fmt.Println("New room added succesfully.")
+			b = true
 		}
 	}
-	fmt.Println("New room not added to array.")
+	if b != true {
+		fmt.Println("New room not added to array.")
+	}
 }
