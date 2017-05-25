@@ -14,7 +14,6 @@ import (
 	"strings"
 )
 
-<<<<<<< HEAD
 var commonKey []byte
 var connection net.Conn
 var publicKeyCode string
