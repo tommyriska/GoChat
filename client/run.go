@@ -26,10 +26,14 @@ func setup() {
 	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
 }
 
-func welcome() (string, string) {
-	cmd := exec.Command("clear") //Linux example, its tested
+func clear() {
+	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
 	cmd.Run()
+}
+
+func welcome() (string, string) {
+	clear()
 
 	fmt.Println("Welcome to GoChat!\n")
 	fmt.Println("1 Direct connection")
@@ -65,9 +69,7 @@ func chooseStoredServer() (string, string) {
 	var address string
 	var port string
 
-	cmd := exec.Command("clear") //Linux example, its tested
-	cmd.Stdout = os.Stdout
-	cmd.Run()
+	clear()
 
 	dat, err := ioutil.ReadFile("servers.txt")
 	if err != nil {
@@ -119,9 +121,7 @@ func chooseServer() (string, string) {
 	var address string
 	var port string
 
-	cmd := exec.Command("clear") //Linux example, its tested
-	cmd.Stdout = os.Stdout
-	cmd.Run()
+	clear()
 
 	fmt.Print("Server address: ")
 	reader := bufio.NewReader(os.Stdin)
@@ -195,20 +195,17 @@ func exchangeKeys() {
 	pubKey := dhkx.NewPublicKey(serverPublicKey)
 	k, _ := g.ComputeKey(pubKey, clientPrivateKey)
 	commonKey = k.Bytes()[0:32]
-	fmt.Println("")
 }
 
 func startClient() {
 	setup()
 	address, port := welcome()
 
-	cmd := exec.Command("clear") //Linux example, its tested
-	cmd.Stdout = os.Stdout
-	cmd.Run()
+	clear()
 
 	if dialServer(address, port) {
 		exchangeKeys()
-
+		fmt.Println("Connected to: " + address + ":" + port)
 		go listener(connection, commonKey)
 
 		for {
