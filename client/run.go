@@ -23,8 +23,25 @@ func setup() {
 	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
 }
 
-func dialServer() bool {
-	conn, err := net.Dial("tcp", "localhost:8081")
+func chooseServer() (string, string) {
+	var address string
+	var port string
+
+	fmt.Print("Server address: ")
+	reader := bufio.NewReader(os.Stdin)
+	text, _ := reader.ReadString('\n')
+	address = text[0 : len(text)-1]
+
+	fmt.Print("Server port: ")
+	reader2 := bufio.NewReader(os.Stdin)
+	text2, _ := reader2.ReadString('\n')
+	port = text2[0 : len(text2)-1]
+
+	return address, port
+}
+
+func dialServer(address string, port string) bool {
+	conn, err := net.Dial("tcp", address+":"+port)
 	if err != nil {
 		fmt.Println("Can't connect to server")
 		return false
@@ -88,7 +105,9 @@ func exchangeKeys() {
 
 func startClient() {
 	setup()
-	if dialServer() {
+	address, port := chooseServer()
+
+	if dialServer(address, port) {
 		exchangeKeys()
 
 		go listener(connection, commonKey)
