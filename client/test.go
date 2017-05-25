@@ -115,29 +115,6 @@ func main() {
 	startClient()
 }
 
-/**
-func main() {
-	conn, err := net.Dial("tcp", "localhost:8081")
-	if err != nil {
-		fmt.Println("Can't find server.")
-		return
-	}
-	fmt.Println("Connected to server.")
-
-	go listener(conn, byteKey)
-
-	for {
-		// read in input from stdin
-		reader := bufio.NewReader(os.Stdin)
-		text, _ := reader.ReadString('\n')
-		if !checkForCmd(conn, text) {
-			cryptText := encrypt(byteKey, text)
-
-			fmt.Fprintf(conn, cryptText+"\n")
-		}
-	}
-} **/
-
 func listener(conn net.Conn, key []byte) {
 	for {
 		message, _ := bufio.NewReader(conn).ReadString('\n')
