@@ -28,13 +28,12 @@ func setup() {
 }
 
 func clear() {
-
 	switch runtime.GOOS {
-	case "Linux":
+	case "linux":
 		cmd := exec.Command("clear")
 		cmd.Stdout = os.Stdout
 		cmd.Run()
-	case "Windows":
+	case "windows":
 		cmd := exec.Command("cmd", "/c", "cls")
 		cmd.Stdout = os.Stdout
 		cmd.Run()
