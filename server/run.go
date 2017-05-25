@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"dhkx"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -12,12 +13,6 @@ import (
 	"strings"
 )
 
-// client list
-var rooms []Room
-var clientRoom map[Client]Room
-var key []byte
-
-// Room is a struct keeping track of room details
 type Room struct {
 	name        string
 	discription string
@@ -26,46 +21,114 @@ type Room struct {
 	welcomeMsg  string
 }
 
-// Client represents a connected client
 type Client struct {
 	connection net.Conn
 	nick       string
+	clientKey  string
 }
 
-// send is a function for sending a plaintext message
-func (c *Client) send(message []byte) {
-	c.connection.Write(message)
+var rooms []Room
+var clientRoom map[Client]Room
+var publicKeyCode string
+
+func setup() {
+	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
+	clientRoom = make(map[Client]Room)
+	makeRoom("Lobby", "Welcome to Lobby")
+	makeRoom("TestRoom", "Welcome to TestRoom")
 }
 
-// sendEncrypted is a function for sending an encrypted message
-func (c *Client) sendEncrypted(message string) {
-	cryptMsg := encrypt(key, message)
-	c.connection.Write([]byte(cryptMsg + "\n"))
+func contains(s []byte, e byte) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
-// setAndSendKey is a function for sending the
-// encryption key to a new connection
-func (c *Client) setAndSendKey(key []byte) {
-	c.send([]byte(string(key) + "\n"))
+func exchangeKeys(c Client) {
+	fmt.Println("\n" + c.connection.RemoteAddr().String() + " is trying to connect")
+
+	var clientPublicKey []byte
+
+	// generate private key
+	g, _ := dhkx.GetGroup(0)
+	serverPrivateKey, _ := g.GeneratePrivateKey(nil)
+
+	// make sure the key does not contain '\n' or '%'
+	for {
+		if contains(serverPrivateKey.Bytes(), byte('\n')) || contains(serverPrivateKey.Bytes(), byte('%')) {
+			newKey, _ := g.GeneratePrivateKey(nil)
+			serverPrivateKey = newKey
+		} else {
+			break
+		}
+	}
+
+	// generate public key
+	serverPublicKey := serverPrivateKey.Bytes()
+
+	fmt.Println("Waiting for client public key..")
+	// listening for client public key
+	for {
+		message, _ := bufio.NewReader(c.connection).ReadString('\n')
+		if len(message) > len(publicKeyCode) {
+			if message[0:len(publicKeyCode)] == publicKeyCode {
+				clientPublicKey = []byte(message[len(publicKeyCode) : len(message)-1])
+				fmt.Println("Client public key recieved")
+				break
+			}
+		}
+	}
+
+	// sending server public key
+	fmt.Println("Sending server public key")
+	msg := publicKeyCode + string(serverPublicKey) + "\n"
+	fmt.Fprintf(c.connection, msg)
+
+	// finding common key
+	fmt.Println("Finding common key")
+	pubKey := dhkx.NewPublicKey(clientPublicKey)
+	k, _ := g.ComputeKey(pubKey, serverPrivateKey)
+	c.clientKey = string(k.Bytes()[0:32])
+	fmt.Println("Key exchange complete")
+	fmt.Println("Common key: ", c.clientKey)
+
+	c.startThread()
+	fmt.Println(c.connection.RemoteAddr().String() + " connected")
+	switchRoom(c, rooms[0])
 }
 
-// listener is a function which runs in the background as a
-// go routine which listens for incoming messages.
-// As of now, for display purposes, the message gets decrypted and displayed
-// in plaintext in the server window. Then it is checked for command words with
-// the checkForCmd function. If that returns false the message gets sent
-// to all clients in the same room as the sender. At the end, variable "message"
-// is still decrypted, therefore it is sent using only the send function.
+func main() {
+	setup()
+	startServer()
+}
+
+func startServer() {
+	port := ":8081"
+	ln, _ := net.Listen("tcp", port)
+	fmt.Println("Server is listening on " + port)
+
+	for {
+		conn, _ := ln.Accept()
+		newClient := Client{connection: conn}
+		go exchangeKeys(newClient)
+	}
+}
+
 func (c Client) listener() {
 	for {
 		message, _ := bufio.NewReader(c.connection).ReadString('\n')
 		if len(message) > 0 {
 			msg := message[0 : len(message)-1]
-			fmt.Print(c.connection.RemoteAddr().String() + ": " + decrypt(key, msg))
-			if !checkForCmd(c, decrypt(key, msg)) {
-				for key, value := range clientRoom {
-					if key != c && value == clientRoom[c] {
-						key.send([]byte(message + "\n"))
+			msgDecrypted := decrypt([]byte(c.clientKey), msg)
+			fmt.Print(c.connection.RemoteAddr().String() + ": " + msgDecrypted)
+
+			if !checkForCmd(c, msgDecrypted) {
+				for mapKey, value := range clientRoom {
+					if mapKey != c && value == clientRoom[c] {
+						mapKey.sendEncrypted(msgDecrypted)
 					}
 				}
 			}
@@ -73,54 +136,23 @@ func (c Client) listener() {
 	}
 }
 
-// Starts a goroutine that listens for incoming messages.
+func (c *Client) send(message []byte) {
+	c.connection.Write(message)
+}
+
+func (c *Client) sendEncrypted(message string) {
+	cryptMsg := encrypt([]byte(c.clientKey), message)
+	c.connection.Write([]byte(cryptMsg + "\n"))
+}
+
 func (c *Client) startThread() {
 	go c.listener()
 }
 
-func main() {
-	// Upon startup we create a key which is used to encrypt and decrypt all messages
-	// with. This is distributed to all new connections upon connection. This key
-	// is 32 bytes long(256 bits) which is still concidered safe and not broken.
-	key = createKey()
-
-	// Then we set up default rooms. Every new conncetion will be set to the
-	// lobby room.
-	makeRoom("Lobby", "Welcome to Lobby")
-	makeRoom("TestRoom", "Welcome to TestRoom")
-
-	// Then we set up the socket to be a TCP connection and to listen to a
-	// specified port. This port can be set to all port from 1024 and up.
-	port := ":8081"
-	ln, _ := net.Listen("tcp", port)
-	fmt.Println("Server is listening on " + port)
-
-	// Here we set up a map which keeps track of which room all clients are connected to.
-	clientRoom = make(map[Client]Room)
-
-	// This loop listens for new connections. It accepts the new connection, creates
-	// a new Client struct, sends the encryption/decryption key and starts a listener
-	// thread which listens for incoming messages. Then it prints out in the
-	// server window that a new client has connected and sets the clients room
-	// to lobby, which is the default landing room.
-	for {
-		conn, _ := ln.Accept()
-		newClient := Client{connection: conn}
-		newClient.setAndSendKey(key)
-		newClient.startThread()
-		fmt.Println(conn.RemoteAddr().String() + " connected.")
-		switchRoom(newClient, rooms[0])
-	}
-}
-
-// Function to check for commands in a message sent by a client
 func checkForCmd(client Client, msg string) bool {
 	if len(msg) > 1 {
 		words := strings.Split(msg[0:len(msg)-1], " ")
 		switch words[0] {
-		// The room command is used to both list all rooms and to change rooms.
-		// !room sends a list over all rooms to the client
-		// !room [roomname] is a command used to change room to the selected room
 		case "!room":
 			if len(words) > 1 {
 				if words[1] == clientRoom[client].name {
@@ -142,26 +174,6 @@ func checkForCmd(client Client, msg string) bool {
 				client.sendEncrypted(roomMsg)
 			}
 			return true
-		// The !newroom command lets clients create new rooms
-		case "!newroom":
-			if len(words) > 1 {
-				name := words[1]
-				welcomeMsg := words[2]
-				for _, element := range rooms {
-					if element.name == name {
-						client.sendEncrypted("A room with this name already exists!\n")
-					} else {
-						makeRoom(name, welcomeMsg)
-						for _, element := range rooms {
-							if element.name == words[1] {
-								client.sendEncrypted("Switching room: " + element.name + "\n")
-								switchRoom(client, element)
-							}
-						}
-					}
-				}
-
-			}
 		}
 	}
 	return false
@@ -177,7 +189,6 @@ func makeRoom(name string, welcomeMsg string) {
 	rooms = append(rooms, newRoom)
 }
 
-// create key
 func createKey() []byte {
 	randKey := make([]byte, 32)
 	_, err := rand.Read(randKey)
@@ -187,7 +198,6 @@ func createKey() []byte {
 	return randKey
 }
 
-// encrypt message
 func encrypt(key []byte, text string) string {
 	plaintext := []byte(text)
 
@@ -208,7 +218,6 @@ func encrypt(key []byte, text string) string {
 	return base64.URLEncoding.EncodeToString(ciphertext)
 }
 
-// decrypt message
 func decrypt(key []byte, cryptoText string) string {
 	ciphertext, _ := base64.URLEncoding.DecodeString(cryptoText)
 

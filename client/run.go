@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"dhkx"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -13,41 +14,109 @@ import (
 	"strings"
 )
 
-func main() {
-	var key string
-	// connect to server
+var commonKey []byte
+var connection net.Conn
+var publicKeyCode string
+
+func setup() {
+	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
+}
+
+func dialServer() bool {
 	conn, err := net.Dial("tcp", "localhost:8081")
 	if err != nil {
-		fmt.Println("Can't find server.")
-		return
+		fmt.Println("Can't connect to server")
+		return false
 	}
-	fmt.Println("Connected to server.")
-	// get key
-	key, _ = bufio.NewReader(conn).ReadString('\n')
 
-	// get key
-	keyMsg := []byte(key)
-	byteKey := keyMsg[0 : len(keyMsg)-1]
+	fmt.Println("\nConnected to server")
+	connection = conn
+	return true
+}
 
-	// start listener thread
-	go listener(conn, byteKey)
+func contains(s []byte, e byte) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
 
+func exchangeKeys() {
+	var serverPublicKey []byte
+
+	// generate private key
+	g, _ := dhkx.GetGroup(0)
+	clientPrivateKey, _ := g.GeneratePrivateKey(nil)
+
+	// make sure the key does not contain '\n' or '%'
 	for {
-		// read in input from stdin
-		reader := bufio.NewReader(os.Stdin)
-		text, _ := reader.ReadString('\n')
-		if !checkForCmd(conn, text) {
-			cryptText := encrypt(byteKey, text)
+		if contains(clientPrivateKey.Bytes(), byte('\n')) || contains(clientPrivateKey.Bytes(), byte('%')) {
+			newKey, _ := g.GeneratePrivateKey(nil)
+			clientPrivateKey = newKey
+		} else {
+			break
+		}
+	}
 
-			// send to socket
-			fmt.Fprintf(conn, cryptText+"\n")
+	// generate public key
+	clientPublicKey := clientPrivateKey.Bytes()
+
+	// sending client public key
+	fmt.Println("Sending client public key")
+	msg := publicKeyCode + string(clientPublicKey) + "\n"
+
+	fmt.Fprintf(connection, msg)
+
+	// listening for server public key
+	fmt.Println("Waiting for server public key..")
+	for {
+		message, _ := bufio.NewReader(connection).ReadString('\n')
+		if len(message) > len(publicKeyCode) {
+			if message[0:len(publicKeyCode)] == publicKeyCode {
+				serverPublicKey = []byte(message[len(publicKeyCode) : len(message)-1])
+				fmt.Println("Server public key recieved")
+				break
+			}
+		}
+	}
+
+	// finding common key
+	fmt.Println("Finding common key")
+	pubKey := dhkx.NewPublicKey(serverPublicKey)
+	k, _ := g.ComputeKey(pubKey, clientPrivateKey)
+	commonKey = k.Bytes()[0:32]
+	fmt.Println("Key exchange complete")
+	fmt.Println("Common key: " + string(commonKey))
+	fmt.Println("")
+}
+
+func startClient() {
+	setup()
+	if dialServer() {
+		exchangeKeys()
+
+		go listener(connection, commonKey)
+
+		for {
+			reader := bufio.NewReader(os.Stdin)
+			text, _ := reader.ReadString('\n')
+			if !checkForCmd(connection, text) {
+				cryptText := encrypt(commonKey, text)
+
+				fmt.Fprintf(connection, cryptText+"\n")
+			}
 		}
 	}
 }
 
+func main() {
+	startClient()
+}
+
 func listener(conn net.Conn, key []byte) {
 	for {
-		// listen for message from server
 		message, _ := bufio.NewReader(conn).ReadString('\n')
 		msg := decrypt(key, message)
 		fmt.Print(msg)
@@ -59,7 +128,6 @@ func quit(conn net.Conn) {
 	os.Exit(1)
 }
 
-// check for command
 func checkForCmd(conn net.Conn, msg string) bool {
 	if len(msg) > 1 {
 		words := strings.Split(msg[0:len(msg)-1], " ")
