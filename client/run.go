@@ -5,13 +5,14 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"github.com/monnand/dhkx"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"strings"
+
+	"github.com/monnand/dhkx"
 )
 
 var commonKey []byte
@@ -64,31 +65,24 @@ func exchangeKeys() {
 	clientPublicKey := clientPrivateKey.Bytes()
 
 	// sending client public key
-	fmt.Println("Sending client public key")
 	msg := publicKeyCode + string(clientPublicKey) + "\n"
-
 	fmt.Fprintf(connection, msg)
 
 	// listening for server public key
-	fmt.Println("Waiting for server public key..")
 	for {
 		message, _ := bufio.NewReader(connection).ReadString('\n')
 		if len(message) > len(publicKeyCode) {
 			if message[0:len(publicKeyCode)] == publicKeyCode {
 				serverPublicKey = []byte(message[len(publicKeyCode) : len(message)-1])
-				fmt.Println("Server public key recieved")
 				break
 			}
 		}
 	}
 
 	// finding common key
-	fmt.Println("Finding common key")
 	pubKey := dhkx.NewPublicKey(serverPublicKey)
 	k, _ := g.ComputeKey(pubKey, clientPrivateKey)
 	commonKey = k.Bytes()[0:32]
-	fmt.Println("Key exchange complete")
-	fmt.Println("Common key: " + string(commonKey))
 	fmt.Println("")
 }
 

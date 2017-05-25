@@ -5,12 +5,13 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"github.com/monnand/dhkx"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"net"
 	"strings"
+
+	"github.com/monnand/dhkx"
 )
 
 type Room struct {
@@ -48,7 +49,6 @@ func contains(s []byte, e byte) bool {
 }
 
 func exchangeKeys(c Client) {
-	fmt.Println("\n" + c.connection.RemoteAddr().String() + " is trying to connect")
 
 	var clientPublicKey []byte
 
@@ -69,31 +69,25 @@ func exchangeKeys(c Client) {
 	// generate public key
 	serverPublicKey := serverPrivateKey.Bytes()
 
-	fmt.Println("Waiting for client public key..")
 	// listening for client public key
 	for {
 		message, _ := bufio.NewReader(c.connection).ReadString('\n')
 		if len(message) > len(publicKeyCode) {
 			if message[0:len(publicKeyCode)] == publicKeyCode {
 				clientPublicKey = []byte(message[len(publicKeyCode) : len(message)-1])
-				fmt.Println("Client public key recieved")
 				break
 			}
 		}
 	}
 
 	// sending server public key
-	fmt.Println("Sending server public key")
 	msg := publicKeyCode + string(serverPublicKey) + "\n"
 	fmt.Fprintf(c.connection, msg)
 
 	// finding common key
-	fmt.Println("Finding common key")
 	pubKey := dhkx.NewPublicKey(clientPublicKey)
 	k, _ := g.ComputeKey(pubKey, serverPrivateKey)
 	c.clientKey = string(k.Bytes()[0:32])
-	fmt.Println("Key exchange complete")
-	fmt.Println("Common key: ", c.clientKey)
 
 	c.startThread()
 	fmt.Println(c.connection.RemoteAddr().String() + " connected")
