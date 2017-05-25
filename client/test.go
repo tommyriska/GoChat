@@ -5,84 +5,113 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"dhkx"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"strings"
-  "math"
-	"strconv"
 )
 
-// keys
-var clientPrivateKey float64
-var clientPublicKey float64
-var serverPublicKey float64
-var commonKey float64
-var sharedKey int
+var commonKey []byte
 var connection net.Conn
-var prime float64
-var generator float64
-
-// message codes
 var publicKeyCode string
 
-func setup(){
-	prime = 11
-	generator = 23
-	publicKeyCode = "ssad990=+?A¡][ªsa)(asdª]ßðA=S)]"
-
-	clientPrivateKey = 6
-	fmt.Println("Client private key: ", clientPrivateKey)
-
-	clientPublicKey = math.Mod(math.Pow(prime, clientPrivateKey), generator)
-	fmt.Println("Client public key: ", clientPublicKey, "\n")
+func setup() {
+	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
 }
 
-func dialServer(){
-  conn, err := net.Dial("tcp", "localhost:8081")
-  if err != nil {
-    fmt.Println("Can't connect to server")
-    return
-  }
-  fmt.Println("Connected to server")
-  connection = conn
+func dialServer() bool {
+	conn, err := net.Dial("tcp", "localhost:8081")
+	if err != nil {
+		fmt.Println("Can't connect to server")
+		return false
+	}
+
+	fmt.Println("Connected to server")
+	connection = conn
+	return true
 }
 
-func exchangeKeys(){
-	// send and reviece public key
-	fmt.Println("Sending public key")
-	msg := publicKeyCode + strconv.FormatFloat(clientPublicKey, 'f', -1, 64) + "\n"
+func contains(s []byte, e byte) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func exchangeKeys() {
+	var serverPublicKey []byte
+
+	// generate private key
+	g, _ := dhkx.GetGroup(0)
+	clientPrivateKey, _ := g.GeneratePrivateKey(nil)
+
+	// make sure the key does not contain '\n' or '%'
+	for {
+		if contains(clientPrivateKey.Bytes(), byte('\n')) || contains(clientPrivateKey.Bytes(), byte('%')) {
+			newKey, _ := g.GeneratePrivateKey(nil)
+			clientPrivateKey = newKey
+		} else {
+			break
+		}
+	}
+
+	// generate public key
+	clientPublicKey := clientPrivateKey.Bytes()
+
+	// sending client public key
+	fmt.Println("Sending client public key")
+	msg := publicKeyCode + string(clientPublicKey) + "\n"
+
 	fmt.Fprintf(connection, msg)
 
+	// listening for server public key
 	fmt.Println("Waiting for server public key..")
-
-	for{
+	for {
 		message, _ := bufio.NewReader(connection).ReadString('\n')
-		if len(message) > len(publicKeyCode){
-			if message[0 : len(publicKeyCode)] == publicKeyCode{
-				c, _ := strconv.ParseFloat((message[len(publicKeyCode) : len(message) - 1]), 64)
-				serverPublicKey = c
-				fmt.Println("Server public key recieved: " + message[len(publicKeyCode) : len(message) - 1])
+		if len(message) > len(publicKeyCode) {
+			if message[0:len(publicKeyCode)] == publicKeyCode {
+				serverPublicKey = []byte(message[len(publicKeyCode) : len(message)-1])
+				fmt.Println("Server public key recieved")
 				break
 			}
 		}
 	}
 
-	commonKey = math.Mod(math.Pow(serverPublicKey, clientPrivateKey), generator)
-	commonKeyString := strconv.FormatFloat(commonKey, 'f', -1, 64)
-	fmt.Println("Common key: " + commonKeyString)
+	// finding common key
+	fmt.Println("Finding common key")
+	pubKey := dhkx.NewPublicKey(serverPublicKey)
+	k, _ := g.ComputeKey(pubKey, clientPrivateKey)
+	commonKey = k.Bytes()[0:32]
+	fmt.Println("Key exchange complete")
+	fmt.Println("Common key: " + string(commonKey))
 }
 
-func startClient(){
+func startClient() {
 	setup()
-  dialServer()
-  exchangeKeys()
+	if dialServer() {
+		exchangeKeys()
+
+		go listener(connection, commonKey)
+
+		for {
+			reader := bufio.NewReader(os.Stdin)
+			text, _ := reader.ReadString('\n')
+			if !checkForCmd(connection, text) {
+				cryptText := encrypt(commonKey, text)
+
+				fmt.Fprintf(connection, cryptText+"\n")
+			}
+		}
+	}
 }
 
-func main(){
-  startClient()
+func main() {
+	startClient()
 }
 
 /**

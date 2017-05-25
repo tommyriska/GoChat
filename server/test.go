@@ -5,26 +5,13 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"dhkx"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"net"
 	"strings"
-	"strconv"
-	"math"
 )
-
-var rooms []Room
-var clientRoom map[Client]Room
-var key []byte
-
-var publicKeyCode string
-var serverPrivateKey float64
-var serverPublicKey float64
-var clientPublicKey float64
-var commonKey float64
-var prime float64
-var generator float64
 
 type Room struct {
 	name        string
@@ -34,78 +21,114 @@ type Room struct {
 	welcomeMsg  string
 }
 
-func setup(){
-	publicKeyCode = "ssad990=+?A¡][ªsa)(asdª]ßðA=S)]"
-	serverPrivateKey = 3
-	prime = 11
-	generator = 23
-	serverPublicKey = math.Mod(math.Pow(prime, serverPrivateKey), generator)
-	fmt.Println("Server private key: ", serverPrivateKey)
-	fmt.Println("Server public key: ", serverPublicKey)
+type Client struct {
+	connection net.Conn
+	nick       string
+	clientKey  string
 }
 
-func exchangeKeys(c Client){
+var rooms []Room
+var clientRoom map[Client]Room
+var publicKeyCode string
 
+func setup() {
+	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
+	clientRoom = make(map[Client]Room)
+	makeRoom("Lobby", "Welcome to Lobby")
+	makeRoom("TestRoom", "Welcome to TestRoom")
+}
+
+func contains(s []byte, e byte) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func exchangeKeys(c Client) {
 	fmt.Println("\n" + c.connection.RemoteAddr().String() + " is trying to connect")
-	fmt.Println("Waiting for client public key..")
 
-	for{
+	var clientPublicKey []byte
+
+	// generate private key
+	g, _ := dhkx.GetGroup(0)
+	serverPrivateKey, _ := g.GeneratePrivateKey(nil)
+
+	// make sure the key does not contain '\n' or '%'
+	for {
+		if contains(serverPrivateKey.Bytes(), byte('\n')) || contains(serverPrivateKey.Bytes(), byte('%')) {
+			newKey, _ := g.GeneratePrivateKey(nil)
+			serverPrivateKey = newKey
+		} else {
+			break
+		}
+	}
+
+	// generate public key
+	serverPublicKey := serverPrivateKey.Bytes()
+
+	fmt.Println("Waiting for client public key..")
+	// listening for client public key
+	for {
 		message, _ := bufio.NewReader(c.connection).ReadString('\n')
-		if len(message) > len(publicKeyCode){
-			if message[0 : len(publicKeyCode)] == publicKeyCode{
-				c, _ := strconv.ParseFloat((message[len(publicKeyCode) : len(message) - 1]), 64)
-				clientPublicKey = c
-				fmt.Println("Client public key recieved: " + message[len(publicKeyCode) : len(message) - 1])
+		if len(message) > len(publicKeyCode) {
+			if message[0:len(publicKeyCode)] == publicKeyCode {
+				clientPublicKey = []byte(message[len(publicKeyCode) : len(message)-1])
+				fmt.Println("Client public key recieved")
 				break
 			}
 		}
 	}
 
+	// sending server public key
 	fmt.Println("Sending server public key")
-	msg := publicKeyCode + strconv.FormatFloat(serverPublicKey, 'f', -1, 64) + "\n"
+	msg := publicKeyCode + string(serverPublicKey) + "\n"
 	fmt.Fprintf(c.connection, msg)
 
-	commonKey = math.Mod(math.Pow(clientPublicKey, serverPrivateKey), generator)
-	commonKeyString := strconv.FormatFloat(commonKey, 'f', -1, 64)
-	fmt.Println("Common key: " + commonKeyString)
+	// finding common key
+	fmt.Println("Finding common key")
+	pubKey := dhkx.NewPublicKey(clientPublicKey)
+	k, _ := g.ComputeKey(pubKey, serverPrivateKey)
+	c.clientKey = string(k.Bytes()[0:32])
+	fmt.Println("Key exchange complete")
+	fmt.Println("Common key: ", c.clientKey)
+
+	c.startThread()
+	fmt.Println(c.connection.RemoteAddr().String() + " connected.")
+	switchRoom(c, rooms[0])
 }
 
 func main() {
-	key = createKey()
+	setup()
+	startServer()
+}
 
-	makeRoom("Lobby", "Welcome to Lobby")
-	makeRoom("TestRoom", "Welcome to TestRoom")
-
+func startServer() {
 	port := ":8081"
 	ln, _ := net.Listen("tcp", port)
 	fmt.Println("Server is listening on " + port)
-	setup()
-
-	clientRoom = make(map[Client]Room)
 
 	for {
 		conn, _ := ln.Accept()
 		newClient := Client{connection: conn}
-		exchangeKeys(newClient)
-		/**
-		newClient.setAndSendKey(key)
-		newClient.startThread()
-		fmt.Println(conn.RemoteAddr().String() + " connected.")
-		switchRoom(newClient, rooms[0])**/
+		go exchangeKeys(newClient)
 	}
 }
-
 
 func (c Client) listener() {
 	for {
 		message, _ := bufio.NewReader(c.connection).ReadString('\n')
 		if len(message) > 0 {
 			msg := message[0 : len(message)-1]
-			fmt.Print(c.connection.RemoteAddr().String() + ": " + decrypt(key, msg))
-			if !checkForCmd(c, decrypt(key, msg)) {
-				for key, value := range clientRoom {
-					if key != c && value == clientRoom[c] {
-						key.send([]byte(message + "\n"))
+			msgDecrypted := decrypt([]byte(c.clientKey), msg)
+			fmt.Print(c.connection.RemoteAddr().String() + ": " + msgDecrypted)
+
+			if !checkForCmd(c, msgDecrypted) {
+				for mapKey, value := range clientRoom {
+					if mapKey != c && value == clientRoom[c] {
+						mapKey.sendEncrypted(msgDecrypted)
 					}
 				}
 			}
@@ -113,22 +136,13 @@ func (c Client) listener() {
 	}
 }
 
-type Client struct {
-	connection net.Conn
-	nick       string
-}
-
 func (c *Client) send(message []byte) {
 	c.connection.Write(message)
 }
 
 func (c *Client) sendEncrypted(message string) {
-	cryptMsg := encrypt(key, message)
+	cryptMsg := encrypt([]byte(c.clientKey), message)
 	c.connection.Write([]byte(cryptMsg + "\n"))
-}
-
-func (c *Client) setAndSendKey(key []byte) {
-	c.send([]byte(string(key) + "\n"))
 }
 
 func (c *Client) startThread() {
