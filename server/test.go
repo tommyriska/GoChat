@@ -96,7 +96,7 @@ func exchangeKeys(c Client) {
 	fmt.Println("Common key: ", c.clientKey)
 
 	c.startThread()
-	fmt.Println(c.connection.RemoteAddr().String() + " connected.")
+	fmt.Println(c.connection.RemoteAddr().String() + " connected")
 	switchRoom(c, rooms[0])
 }
 

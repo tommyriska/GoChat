@@ -29,7 +29,7 @@ func dialServer() bool {
 		return false
 	}
 
-	fmt.Println("Connected to server")
+	fmt.Println("\nConnected to server")
 	connection = conn
 	return true
 }
@@ -89,6 +89,7 @@ func exchangeKeys() {
 	commonKey = k.Bytes()[0:32]
 	fmt.Println("Key exchange complete")
 	fmt.Println("Common key: " + string(commonKey))
+	fmt.Println("")
 }
 
 func startClient() {
