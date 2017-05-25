@@ -95,8 +95,10 @@ func chooseStoredServer() (string, string) {
 	chosen := text[0 : len(text)-1]
 	i, _ := strconv.ParseInt(chosen, 10, 64)
 
-	address = serverArray[i].address
-	port = serverArray[i].port
+	if int(i) < len(serverArray) {
+		address = serverArray[i].address
+		port = serverArray[i].port
+	}
 
 	return address, port
 }
