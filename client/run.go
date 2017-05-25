@@ -23,6 +23,42 @@ func setup() {
 	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
 }
 
+func welcome() (string, string) {
+	fmt.Println("\nWelcome to GoChat!")
+	fmt.Println("1. Direct connection")
+	fmt.Println("2. Choose from stored servers")
+	fmt.Println("3. Add new server")
+
+	reader := bufio.NewReader(os.Stdin)
+	text, _ := reader.ReadString('\n')
+
+	var address string
+	var port string
+
+	switch string(text[0]) {
+	case "1":
+		address, port = chooseServer()
+	case "2":
+		address, port = chooseStoredServer()
+	case "3":
+		address, port = chooseServer()
+	}
+
+	return address, port
+}
+
+func chooseStoredServer() (string, string) {
+	var address string
+	var port string
+
+	return address, port
+}
+
+func storeNewServer(address string, port string, name string) {
+	//s := Server{address, port, name}
+
+}
+
 func chooseServer() (string, string) {
 	var address string
 	var port string
@@ -105,7 +141,7 @@ func exchangeKeys() {
 
 func startClient() {
 	setup()
-	address, port := chooseServer()
+	address, port := welcome()
 
 	if dialServer(address, port) {
 		exchangeKeys()

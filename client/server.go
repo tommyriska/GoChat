@@ -1,6 +1,6 @@
 package main
 
-type server struct {
+type Server struct {
 	address string
 	port    string
 	name    string
