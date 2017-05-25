@@ -6,10 +6,13 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/monnand/dhkx"
@@ -42,6 +45,13 @@ func welcome() (string, string) {
 		address, port = chooseStoredServer()
 	case "3":
 		address, port = chooseServer()
+		fmt.Print("Server name: ")
+
+		reader := bufio.NewReader(os.Stdin)
+		text, _ := reader.ReadString('\n')
+		name := text[0 : len(text)-1]
+
+		storeNewServer(address, port, name)
 	}
 
 	return address, port
@@ -50,13 +60,39 @@ func welcome() (string, string) {
 func chooseStoredServer() (string, string) {
 	var address string
 	var port string
+	var servers []Server
+
+	json.Unmarshal([]byte("servers.json"), &servers)
+	for i, e := range servers {
+		fmt.Println(i, ". "+e.address+":"+e.port+": "+e.name)
+	}
+
+	fmt.Print("\nChoose server: ")
+	reader := bufio.NewReader(os.Stdin)
+	text, _ := reader.ReadString('\n')
+	chosen := text[0 : len(text)-1]
+	i, _ := strconv.ParseInt(chosen, 10, 64)
+
+	address = servers[i].address
+	port = servers[i].port
 
 	return address, port
 }
 
 func storeNewServer(address string, port string, name string) {
-	//s := Server{address, port, name}
+	dat, err := ioutil.ReadFile("servers.txt")
+	if err != nil {
+		panic(err)
+	}
 
+	text := string(dat)
+	newServer := address + "|" + port + "|" + name + "\n"
+	text += newServer
+
+	err2 := ioutil.WriteFile("servers.txt", []byte(text), 0644)
+	if err2 != nil {
+		panic(err2)
+	}
 }
 
 func chooseServer() (string, string) {
