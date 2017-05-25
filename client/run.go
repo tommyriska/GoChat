@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 
@@ -26,10 +27,14 @@ func setup() {
 }
 
 func welcome() (string, string) {
-	fmt.Println("\nWelcome to GoChat!\n")
+	cmd := exec.Command("clear") //Linux example, its tested
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+
+	fmt.Println("Welcome to GoChat!\n")
 	fmt.Println("1 Direct connection")
 	fmt.Println("2 Choose from stored servers")
-	fmt.Println("3 Add new server")
+	fmt.Println("3 Add new server\n")
 
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
@@ -60,6 +65,10 @@ func chooseStoredServer() (string, string) {
 	var address string
 	var port string
 
+	cmd := exec.Command("clear") //Linux example, its tested
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+
 	dat, err := ioutil.ReadFile("servers.txt")
 	if err != nil {
 		panic(err)
@@ -68,7 +77,7 @@ func chooseStoredServer() (string, string) {
 	servers := strings.Split(string(dat), "|")
 	var serverArray []Server
 
-	fmt.Println("")
+	fmt.Println("Servers:\n")
 	for i, e := range servers {
 		if len(e) > 1 {
 			data := strings.Split(e, "-")
@@ -109,6 +118,10 @@ func storeNewServer(address string, port string, name string) {
 func chooseServer() (string, string) {
 	var address string
 	var port string
+
+	cmd := exec.Command("clear") //Linux example, its tested
+	cmd.Stdout = os.Stdout
+	cmd.Run()
 
 	fmt.Print("Server address: ")
 	reader := bufio.NewReader(os.Stdin)
@@ -188,6 +201,10 @@ func exchangeKeys() {
 func startClient() {
 	setup()
 	address, port := welcome()
+
+	cmd := exec.Command("clear") //Linux example, its tested
+	cmd.Stdout = os.Stdout
+	cmd.Run()
 
 	if dialServer(address, port) {
 		exchangeKeys()
