@@ -6,7 +6,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -27,10 +26,10 @@ func setup() {
 }
 
 func welcome() (string, string) {
-	fmt.Println("\nWelcome to GoChat!")
-	fmt.Println("1. Direct connection")
-	fmt.Println("2. Choose from stored servers")
-	fmt.Println("3. Add new server")
+	fmt.Println("\nWelcome to GoChat!\n")
+	fmt.Println("1 Direct connection")
+	fmt.Println("2 Choose from stored servers")
+	fmt.Println("3 Add new server")
 
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
@@ -60,11 +59,23 @@ func welcome() (string, string) {
 func chooseStoredServer() (string, string) {
 	var address string
 	var port string
-	var servers []Server
 
-	json.Unmarshal([]byte("servers.json"), &servers)
+	dat, err := ioutil.ReadFile("servers.txt")
+	if err != nil {
+		panic(err)
+	}
+
+	servers := strings.Split(string(dat), "|")
+	var serverArray []Server
+
+	fmt.Println("")
 	for i, e := range servers {
-		fmt.Println(i, ". "+e.address+":"+e.port+": "+e.name)
+		if len(e) > 1 {
+			data := strings.Split(e, "-")
+			s := Server{address: data[0], port: data[1], name: data[2]}
+			fmt.Println(i, s.address+":"+s.port+" "+s.name)
+			serverArray = append(serverArray, s)
+		}
 	}
 
 	fmt.Print("\nChoose server: ")
@@ -73,8 +84,8 @@ func chooseStoredServer() (string, string) {
 	chosen := text[0 : len(text)-1]
 	i, _ := strconv.ParseInt(chosen, 10, 64)
 
-	address = servers[i].address
-	port = servers[i].port
+	address = serverArray[i].address
+	port = serverArray[i].port
 
 	return address, port
 }
@@ -86,7 +97,7 @@ func storeNewServer(address string, port string, name string) {
 	}
 
 	text := string(dat)
-	newServer := address + "|" + port + "|" + name + "\n"
+	newServer := address + "-" + port + "-" + name + "|"
 	text += newServer
 
 	err2 := ioutil.WriteFile("servers.txt", []byte(text), 0644)
@@ -119,7 +130,6 @@ func dialServer(address string, port string) bool {
 		return false
 	}
 
-	fmt.Println("\nConnected to server")
 	connection = conn
 	return true
 }
