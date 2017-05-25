@@ -23,7 +23,7 @@ func setup() {
 }
 
 func dialServer() bool {
-	conn, err := net.Dial("tcp", "localhost:8081")
+	conn, err := net.Dial("tcp", "158.37.63.135:8081")
 	if err != nil {
 		fmt.Println("Can't connect to server")
 		return false
