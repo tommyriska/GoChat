@@ -5,7 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"dhkx"
+	"github.com/monnand/dhkx"
 	"encoding/base64"
 	"fmt"
 	"io"
