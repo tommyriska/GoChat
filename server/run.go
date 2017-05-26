@@ -190,7 +190,7 @@ func (c Client) listener() {
 				// delete client from the map, close connection and print
 				for m, v := range clientRoom {
 					if m != c && v == clientRoom[c] {
-						m.sendEncrypted(makeBold(c.nick) + " disconnected")
+						m.sendEncrypted(makeBold(c.nick) + " disconnected\n")
 					}
 				}
 				delete(clientRoom, c)
