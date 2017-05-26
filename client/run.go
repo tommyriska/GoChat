@@ -279,7 +279,7 @@ func startClient() {
 
 			// check user input for commands, if no commands encrypt and send to server
 			if !checkForCmd(connection, text) {
-				cryptText := encrypt(commonKey, nick+": "+text)
+				cryptText := encrypt(commonKey, "\033[1m"+nick+"\033[0m"+": "+text)
 
 				fmt.Fprintf(connection, cryptText+"\n")
 			}
