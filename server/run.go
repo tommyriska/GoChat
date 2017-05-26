@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"os"
 	"os/exec"
@@ -20,7 +21,7 @@ import (
 // struct for holding room info
 type Room struct {
 	name        string
-	discription string
+	description string
 	password    string
 	maxClients  int
 	welcomeMsg  string
@@ -51,6 +52,42 @@ func clear() {
 		cmd.Run()
 	default:
 		fmt.Println("Attempted to clear terminal, but OS is not supported.")
+	}
+}
+
+func loadRooms(roomList []Room) {
+	// read data from rooms file
+	dat, err := ioutil.ReadFile("rooms.txt")
+	if err != nil {
+		panic(err)
+	}
+
+	roomsString := strings.Split(string(dat), "|")
+
+	for _, e := range roomsString {
+		roomString := strings.Split(e, "-")
+		r := Room{name: roomString[0], welcomeMsg: roomString[1], description: roomString[2]}
+		roomList = append(rooms, r)
+	}
+}
+
+// saves a new room to rooms.txt
+func saveRoom(name string, welcomeMsg string, description string) {
+	// read data from rooms file
+	dat, err := ioutil.ReadFile("rooms.txt")
+	if err != nil {
+		panic(err)
+	}
+
+	// string thats being added to the file
+	newRoomString := name + "-" + welcomeMsg + "-" + description + "|"
+	// new file content
+	datString := string(dat) + newRoomString
+
+	// write the updated content to file
+	err2 := ioutil.WriteFile("rooms.txt", []byte(datString), 0644)
+	if err2 != nil {
+		panic(err2)
 	}
 }
 
