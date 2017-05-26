@@ -9,14 +9,15 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
+	"os/exec"
+	"runtime"
 	"strings"
+
+	"github.com/monnand/dhkx"
 )
 
-// client list
-var rooms []Room
-var clientRoom map[Client]Room
-var key []byte
-
+// struct for holding room info
 type Room struct {
 	name        string
 	discription string
@@ -25,45 +26,100 @@ type Room struct {
 	welcomeMsg  string
 }
 
+// struct for holding client info
 type Client struct {
 	connection net.Conn
 	nick       string
+	clientKey  string
 }
 
-func (c *Client) send(message []byte) {
-	c.connection.Write(message)
-}
+var rooms []Room
+var clientRoom map[Client]Room
+var publicKeyCode string
 
-func (c *Client) sendEncrypted(message string) {
-	cryptMsg := encrypt(key, message)
-	c.connection.Write([]byte(cryptMsg + "\n"))
-}
-
-func (c *Client) setAndSendKey(key []byte) {
-	c.send([]byte(string(key) + "\n"))
-}
-
-func (c Client) listener() {
-	for {
-		message, _ := bufio.NewReader(c.connection).ReadString('\n')
-		if len(message) > 0 {
-			msg := message[0 : len(message)-1]
-			fmt.Print(c.connection.RemoteAddr().String() + ": " + decrypt(key, msg))
-			if !checkForCmd(c, decrypt(key, msg)) {
-				for key, value := range clientRoom {
-					if key != c && value == clientRoom[c] {
-						key.send([]byte(message + "\n"))
-					}
-				}
-			}
-		}
+// clear the terminal screen
+func clear() {
+	switch runtime.GOOS {
+	case "linux":
+		cmd := exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	case "windows":
+		cmd := exec.Command("cmd", "/c", "cls")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	default:
+		fmt.Println("Attempted to clear terminal, but OS is not supported.")
 	}
 }
 
-func (c *Client) startThread() {
-	go c.listener()
+// init
+func setup() {
+	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
+	clientRoom = make(map[Client]Room)
+	makeRoom("Lobby", "Welcome to Lobby")
+	makeRoom("TestRoom", "Welcome to TestRoom")
 }
 
+// check if []byte contains specific byte
+func contains(s []byte, e byte) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+// exchange key with client
+func exchangeKeys(c Client) {
+
+	var clientPublicKey []byte
+
+	// generate private key
+	g, _ := dhkx.GetGroup(0)
+	serverPrivateKey, _ := g.GeneratePrivateKey(nil)
+
+	// make sure the key does not contain '\n' or '%'
+	for {
+		if contains(serverPrivateKey.Bytes(), byte('\n')) || contains(serverPrivateKey.Bytes(), byte('%')) {
+			newKey, _ := g.GeneratePrivateKey(nil)
+			serverPrivateKey = newKey
+		} else {
+			break
+		}
+	}
+
+	// generate public key
+	serverPublicKey := serverPrivateKey.Bytes()
+
+	// listening for client public key
+	for {
+		message, _ := bufio.NewReader(c.connection).ReadString('\n')
+		if len(message) > len(publicKeyCode) {
+			if message[0:len(publicKeyCode)] == publicKeyCode {
+				clientPublicKey = []byte(message[len(publicKeyCode) : len(message)-1])
+				break
+			}
+		}
+	}
+
+	// sending server public key
+	msg := publicKeyCode + string(serverPublicKey) + "\n"
+	fmt.Fprintf(c.connection, msg)
+
+	// finding common key
+	pubKey := dhkx.NewPublicKey(clientPublicKey)
+	k, _ := g.ComputeKey(pubKey, serverPrivateKey)
+	c.clientKey = string(k.Bytes()[0:32])
+
+	// start the client thread and place in room 0 (Lobby)
+	c.startThread()
+	fmt.Println(c.connection.RemoteAddr().String() + " connected")
+	switchRoom(c, rooms[0])
+}
+
+<<<<<<< HEAD
 func startServer(){
 	// create key
 	key = createKey()
@@ -71,40 +127,113 @@ func startServer(){
 	// lobby
 	makeRoom("Lobby", "Welcome to Lobby")
 	makeRoom("TestRoom", "Welcome to TestRoom")
+=======
+func main() {
+	setup()
+	startServer()
+}
+>>>>>>> Development
 
-	// start server
+// start server listening
+func startServer() {
 	port := ":8081"
 	ln, _ := net.Listen("tcp", port)
+	clear()
 	fmt.Println("Server is listening on " + port)
 
-	clientRoom = make(map[Client]Room)
-
-	// listen loop
+	// accept incomming connectoins, make new client struct and start thread for exchanging keys
 	for {
 		conn, _ := ln.Accept()
 		newClient := Client{connection: conn}
-		newClient.setAndSendKey(key)
-		newClient.startThread()
-		fmt.Println(conn.RemoteAddr().String() + " connected.")
-		switchRoom(newClient, rooms[0])
+		go exchangeKeys(newClient)
 	}
 }
 
+// listen for messages from client
+func (c Client) listener() {
+	quitting := false
+
+	for {
+		message, _ := bufio.NewReader(c.connection).ReadString('\n')
+		if len(message) > 0 {
+			msg := message[0 : len(message)-1]
+
+			// decrypt message
+			msgDecrypted := decrypt([]byte(c.clientKey), msg)
+
+			// if client wants to quit
+			if msgDecrypted == "!quit" {
+				quitting = true
+			}
+
+			// if not quitting, print message, check for commands
+			if !quitting {
+				fmt.Print(c.connection.RemoteAddr().String() + ": " + msgDecrypted)
+
+				if !checkForCmd(c, msgDecrypted) {
+					// for each client in the same room, encrypt the message
+					// with their key and send
+					for mapKey, value := range clientRoom {
+						if mapKey != c && value == clientRoom[c] {
+							mapKey.sendEncrypted(msgDecrypted)
+						}
+					}
+				}
+			} else {
+				// delete client from the map, close connection and print
+				delete(clientRoom, c)
+				c.connection.Close()
+				fmt.Println(c.connection.RemoteAddr().String() + " has disconnected")
+				break
+			}
+		}
+	}
+}
+
+<<<<<<< HEAD
 func main() {
 	startServer()
 }
 
 // check for command
+=======
+// send message to client
+func (c *Client) send(message []byte) {
+	c.connection.Write(message)
+}
+
+// send encrypted message to client
+func (c *Client) sendEncrypted(message string) {
+	cryptMsg := encrypt([]byte(c.clientKey), message)
+	c.connection.Write([]byte(cryptMsg + "\n"))
+}
+
+// start a listener thread for a client
+func (c *Client) startThread() {
+	go c.listener()
+}
+
+// check messsage for commands
+>>>>>>> Development
 func checkForCmd(client Client, msg string) bool {
 	if len(msg) > 1 {
 		words := strings.Split(msg[0:len(msg)-1], " ")
 		switch words[0] {
+		// !room displays a list of available rooms
 		case "!room":
+			// if more than 1 word = we have arguments
 			if len(words) > 1 {
-				for _, element := range rooms {
-					if element.name == words[1] {
-						client.sendEncrypted("Switching room: " + element.name + "\n")
-						switchRoom(client, element)
+				// if attempting to join the room client is already in
+				if words[1] == clientRoom[client].name {
+					message := "You are already in this room\nType !room to get a list of other available chatrooms\n"
+					client.sendEncrypted(message)
+				} else {
+					// look for the room the client wants to join, and join if found
+					for _, element := range rooms {
+						if element.name == words[1] {
+							client.sendEncrypted("Switching room: " + element.name + "\n")
+							switchRoom(client, element)
+						}
 					}
 				}
 			} else {
@@ -120,11 +249,28 @@ func checkForCmd(client Client, msg string) bool {
 	return false
 }
 
+// client switch room
 func switchRoom(client Client, room Room) {
+	// tell clients in the room that we are leaving that
+	// and clients in the new room that we are joining
+	for k, v := range clientRoom {
+		if k != client && v == room {
+			k.sendEncrypted("\033[1m" + client.connection.RemoteAddr().String() + "\033[0m" + " has joined " + "\033[1m" + room.name + "\033[0m" + "\n")
+		}
+		if k != client && v != room {
+			k.sendEncrypted("\033[1m" + client.connection.RemoteAddr().String() + "\033[0m" + " has left " + "\033[1m" + clientRoom[client].name + "\033[0m" + "\n")
+		}
+	}
+
+	// "\033[1m"+nick+"\033[0m"
+
+	// change room
 	clientRoom[client] = room
-	client.sendEncrypted(room.welcomeMsg + "\n")
+	// send the rooms welcome message
+	client.sendEncrypted("\033[1m" + room.welcomeMsg + "\033[0m" + "\n")
 }
 
+// make a new room
 func makeRoom(name string, welcomeMsg string) {
 	newRoom := Room{name: name, welcomeMsg: welcomeMsg}
 	rooms = append(rooms, newRoom)
