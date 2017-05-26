@@ -28,6 +28,7 @@ type Server struct {
 var commonKey []byte
 var connection net.Conn
 var publicKeyCode string
+var nick string
 
 func setup() {
 	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
@@ -46,6 +47,15 @@ func clear() {
 	default:
 		fmt.Println("Attempted to clear terminal, but OS is not supported.")
 	}
+}
+
+func chooseNick() string {
+	fmt.Print("Nickname: ")
+	reader := bufio.NewReader(os.Stdin)
+	text, _ := reader.ReadString('\n')
+	nickname := text[0 : len(text)-1]
+
+	return nickname
 }
 
 func welcome() (string, string) {
@@ -218,7 +228,8 @@ func exchangeKeys() {
 func startClient() {
 	setup()
 	address, port := welcome()
-
+	clear()
+	nick = chooseNick()
 	clear()
 
 	if dialServer(address, port) {
@@ -230,7 +241,7 @@ func startClient() {
 			reader := bufio.NewReader(os.Stdin)
 			text, _ := reader.ReadString('\n')
 			if !checkForCmd(connection, text) {
-				cryptText := encrypt(commonKey, text)
+				cryptText := encrypt(commonKey, nick+": "+text)
 
 				fmt.Fprintf(connection, cryptText+"\n")
 			}
