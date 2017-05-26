@@ -123,7 +123,7 @@ func exchangeKeys(c Client) {
 		message := decrypt([]byte(c.clientKey), msg)
 		if len(message) > len(nickCode) {
 			if message[0:len(nickCode)] == nickCode {
-				nick = message[len(nickCode) : len(message)-1]
+				nick = message[len(nickCode):len(message)]
 				break
 			}
 		}
