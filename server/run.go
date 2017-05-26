@@ -115,9 +115,24 @@ func exchangeKeys(c Client) {
 	k, _ := g.ComputeKey(pubKey, serverPrivateKey)
 	c.clientKey = string(k.Bytes()[0:32])
 
+	var nick string
+	// waiting for nickname
+	for {
+		msg, _ := bufio.NewReader(c.connection).ReadString('\n')
+		message := decrypt([]byte(c.clientKey), msg)
+		if len(message) > len(nickCode) {
+			if message[0:len(nickCode)] == nickCode {
+				nick = message[len(nickCode) : len(message)-1]
+				fmt.Println("NICKNAME RECIEVED")
+				break
+			}
+		}
+	}
+
 	// start the client thread and place in room 0 (Lobby)
+	c.nick = nick
 	c.startThread()
-	fmt.Println(c.connection.RemoteAddr().String() + " connected")
+	fmt.Println(c.connection.RemoteAddr().String() + " connected as " + c.nick)
 	switchRoom(c, rooms[0])
 }
 
@@ -160,14 +175,14 @@ func (c Client) listener() {
 
 			// if not quitting, print message, check for commands
 			if !quitting {
-				fmt.Print(c.connection.RemoteAddr().String() + ": " + msgDecrypted)
+				fmt.Print(c.connection.RemoteAddr().String() + " (" + c.nick + "): " + msgDecrypted)
 
 				if !checkForCmd(c, msgDecrypted) {
 					// for each client in the same room, encrypt the message
 					// with their key and send
 					for mapKey, value := range clientRoom {
 						if mapKey != c && value == clientRoom[c] {
-							mapKey.sendEncrypted(msgDecrypted)
+							mapKey.sendEncrypted(makeBold(c.nick) + " > " + msgDecrypted)
 						}
 					}
 				}
@@ -209,13 +224,13 @@ func checkForCmd(client Client, msg string) bool {
 			if len(words) > 1 {
 				// if attempting to join the room client is already in
 				if words[1] == clientRoom[client].name {
-					message := "You are already in this room\nType !room to get a list of other available chatrooms\n"
+					message := "You are already in this room\nType" + makeBold(" !room ") + "to get a list of other available chatrooms\n"
 					client.sendEncrypted(message)
 				} else {
 					// look for the room the client wants to join, and join if found
 					for _, element := range rooms {
 						if element.name == words[1] {
-							client.sendEncrypted("Switching room: " + element.name + "\n")
+							client.sendEncrypted("Switching room: " + makeBold(element.name) + "\n")
 							switchRoom(client, element)
 						}
 					}
@@ -239,25 +254,28 @@ func switchRoom(client Client, room Room) {
 	// and clients in the new room that we are joining
 	for k, v := range clientRoom {
 		if k != client && v == room {
-			k.sendEncrypted("\033[1m" + client.connection.RemoteAddr().String() + "\033[0m" + " has joined " + "\033[1m" + room.name + "\033[0m" + "\n")
+			k.sendEncrypted(makeBold(client.nick) + " has joined " + makeBold(room.name) + "\n")
 		}
 		if k != client && v != room {
-			k.sendEncrypted("\033[1m" + client.connection.RemoteAddr().String() + "\033[0m" + " has left " + "\033[1m" + clientRoom[client].name + "\033[0m" + "\n")
+			k.sendEncrypted(makeBold(client.nick) + " has left " + makeBold(clientRoom[client].name) + "\n")
 		}
 	}
-
-	// "\033[1m"+nick+"\033[0m"
 
 	// change room
 	clientRoom[client] = room
 	// send the rooms welcome message
-	client.sendEncrypted("\033[1m" + room.welcomeMsg + "\033[0m" + "\n")
+	client.sendEncrypted(makeBold(room.welcomeMsg) + "\n")
 }
 
 // make a new room
 func makeRoom(name string, welcomeMsg string) {
 	newRoom := Room{name: name, welcomeMsg: welcomeMsg}
 	rooms = append(rooms, newRoom)
+}
+
+// make string bold
+func makeBold(text string) string {
+	return "\033[1m" + text + "\033[0m"
 }
 
 // create key

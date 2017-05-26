@@ -262,6 +262,16 @@ func exchangeKeys() {
 	commonKey = k.Bytes()[0:32]
 }
 
+// send nickname to server
+func sendNick() {
+	fmt.Fprintf(connection, encrypt(commonKey, nickCode+nick)+"\n")
+}
+
+// make string bold
+func makeBold(text string) string {
+	return "\033[1m" + text + "\033[0m"
+}
+
 // start the client
 func startClient() {
 	// init
@@ -278,6 +288,7 @@ func startClient() {
 	if dialServer(address, port) {
 		// exchange keys
 		exchangeKeys()
+		sendNick()
 		fmt.Println("Connected to: " + address + ":" + port)
 
 		// start thread to listen for messages from server
@@ -290,7 +301,7 @@ func startClient() {
 
 			// check user input for commands, if no commands encrypt and send to server
 			if !checkForCmd(connection, text) {
-				cryptText := encrypt(commonKey, "\033[1m"+nick+"\033[0m"+": "+text)
+				cryptText := encrypt(commonKey, text)
 
 				fmt.Fprintf(connection, cryptText+"\n")
 			}
