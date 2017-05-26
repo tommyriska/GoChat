@@ -29,11 +29,13 @@ type Server struct {
 var commonKey []byte
 var connection net.Conn
 var publicKeyCode string
+var nickCode string
 var nick string
 
 // init variables
 func setup() {
 	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
+	nickCode = "!#28jKas>zzx'**!+?,>lzc012"
 }
 
 // clear terminal screen

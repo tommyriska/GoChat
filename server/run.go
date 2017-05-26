@@ -36,6 +36,7 @@ type Client struct {
 var rooms []Room
 var clientRoom map[Client]Room
 var publicKeyCode string
+var nickCode string
 
 // clear the terminal screen
 func clear() {
@@ -56,6 +57,7 @@ func clear() {
 // init
 func setup() {
 	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
+	nickCode = "!#28jKas>zzx'**!+?,>lzc012"
 	clientRoom = make(map[Client]Room)
 	makeRoom("Lobby", "Welcome to Lobby")
 	makeRoom("TestRoom", "Welcome to TestRoom")
