@@ -64,8 +64,8 @@ func chooseNick() string {
 	return nickname
 }
 
-// print welcome message and return chosen server address + port
-func welcome() (string, string) {
+// print welcome message and return chosen action
+func welcomePrompt() string {
 	clear()
 
 	// user choices
@@ -74,19 +74,27 @@ func welcome() (string, string) {
 	fmt.Println("2 Choose from stored servers")
 	fmt.Println("3 Add new server\n")
 
+	// prompt for input
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
+
+	return string(text[0])
+}
+
+// choose server, return address and port
+func chooseServer(choice string) (string, string) {
+	clear()
 
 	var address string
 	var port string
 
-	switch string(text[0]) {
+	switch choice {
 	case "1":
-		address, port = chooseServer()
+		address, port = chooseDirectServer()
 	case "2":
 		address, port = chooseStoredServer()
 	case "3":
-		address, port = chooseServer()
+		address, port = chooseDirectServer()
 
 		// promt for server name
 		fmt.Print("Server name: ")
@@ -169,7 +177,7 @@ func storeNewServer(address string, port string, name string) {
 }
 
 // lets user choose address and port to connect to
-func chooseServer() (string, string) {
+func chooseDirectServer() (string, string) {
 	var address string
 	var port string
 
@@ -259,7 +267,8 @@ func startClient() {
 	// init
 	setup()
 	// find wich address and port to connect to
-	address, port := welcome()
+	serverChoice := welcomePrompt()
+	address, port := chooseServer(serverChoice)
 	clear()
 	// find the chosen nickname
 	nick = chooseNick()
