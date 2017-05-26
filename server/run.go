@@ -116,6 +116,7 @@ func exchangeKeys(c Client) {
 	c.clientKey = string(k.Bytes()[0:32])
 
 	var nick string
+
 	// waiting for nickname
 	for {
 		msg, _ := bufio.NewReader(c.connection).ReadString('\n')
@@ -123,7 +124,6 @@ func exchangeKeys(c Client) {
 		if len(message) > len(nickCode) {
 			if message[0:len(nickCode)] == nickCode {
 				nick = message[len(nickCode) : len(message)-1]
-				fmt.Println("NICKNAME RECIEVED")
 				break
 			}
 		}
