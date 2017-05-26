@@ -188,6 +188,11 @@ func (c Client) listener() {
 				}
 			} else {
 				// delete client from the map, close connection and print
+				for m, v := range clientRoom {
+					if m != c && v == clientRoom[c] {
+						m.sendEncrypted(makeBold(c.nick) + " disconnected")
+					}
+				}
 				delete(clientRoom, c)
 				c.connection.Close()
 				fmt.Println(c.connection.RemoteAddr().String() + " has disconnected")
