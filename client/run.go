@@ -19,6 +19,12 @@ import (
 	"github.com/monnand/dhkx"
 )
 
+type Server struct {
+	address string
+	port    string
+	name    string
+}
+
 var commonKey []byte
 var connection net.Conn
 var publicKeyCode string
