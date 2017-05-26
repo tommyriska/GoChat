@@ -237,10 +237,10 @@ func switchRoom(client Client, room Room) {
 	// and clients in the new room that we are joining
 	for k, v := range clientRoom {
 		if k != client && v == room {
-			k.sendEncrypted("\033[1m" + client.connection.RemoteAddr().String() + "\033[0m" + " has joined " + room.name + "\n")
+			k.sendEncrypted("\033[1m" + client.connection.RemoteAddr().String() + "\033[0m" + " has joined " + "\033[1m" + room.name + "\033[0m" + "\n")
 		}
 		if k != client && v != room {
-			k.sendEncrypted("\033[1m" + client.connection.RemoteAddr().String() + "\033[0m" + " has left " + clientRoom[client].name + "\n")
+			k.sendEncrypted("\033[1m" + client.connection.RemoteAddr().String() + "\033[0m" + " has left " + "\033[1m" + clientRoom[client].name + "\033[0m" + "\n")
 		}
 	}
 
