@@ -260,6 +260,7 @@ func checkForCmd(conn net.Conn, msg string) bool {
 		words := strings.Split(msg[0:len(msg)-1], " ")
 		switch words[0] {
 		case "!quit":
+			fmt.Fprintf(connection, encrypt(commonKey, "!quit")+"\n")
 			quit(conn)
 			return true
 		}

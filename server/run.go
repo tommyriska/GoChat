@@ -131,19 +131,33 @@ func startServer() {
 }
 
 func (c Client) listener() {
+	quitting := false
+
 	for {
 		message, _ := bufio.NewReader(c.connection).ReadString('\n')
 		if len(message) > 0 {
 			msg := message[0 : len(message)-1]
 			msgDecrypted := decrypt([]byte(c.clientKey), msg)
-			fmt.Print(c.connection.RemoteAddr().String() + ": " + msgDecrypted)
 
-			if !checkForCmd(c, msgDecrypted) {
-				for mapKey, value := range clientRoom {
-					if mapKey != c && value == clientRoom[c] {
-						mapKey.sendEncrypted(msgDecrypted)
+			if msgDecrypted == "!quit" {
+				quitting = true
+			}
+
+			if !quitting {
+				fmt.Print(c.connection.RemoteAddr().String() + ": " + msgDecrypted)
+
+				if !checkForCmd(c, msgDecrypted) {
+					for mapKey, value := range clientRoom {
+						if mapKey != c && value == clientRoom[c] {
+							mapKey.sendEncrypted(msgDecrypted)
+						}
 					}
 				}
+			} else {
+				delete(clientRoom, c)
+				c.connection.Close()
+				fmt.Println(c.connection.RemoteAddr().String() + " has disconnected")
+				break
 			}
 		}
 	}
@@ -169,7 +183,7 @@ func checkForCmd(client Client, msg string) bool {
 		case "!room":
 			if len(words) > 1 {
 				if words[1] == clientRoom[client].name {
-					message := "You are already in this room!\nType !room to get a list of other available chatrooms"
+					message := "You are already in this room\nType !room to get a list of other available chatrooms\n"
 					client.sendEncrypted(message)
 				} else {
 					for _, element := range rooms {
@@ -193,6 +207,15 @@ func checkForCmd(client Client, msg string) bool {
 }
 
 func switchRoom(client Client, room Room) {
+	for k, v := range clientRoom {
+		if k != client && v == room {
+			k.sendEncrypted(client.connection.RemoteAddr().String() + " has joined " + room.name + "\n")
+		}
+		if k != client && v != room {
+			k.sendEncrypted(client.connection.RemoteAddr().String() + " has left " + clientRoom[client].name + "\n")
+		}
+	}
+
 	clientRoom[client] = room
 	client.sendEncrypted(room.welcomeMsg + "\n")
 }
