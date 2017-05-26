@@ -9,6 +9,9 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/monnand/dhkx"
@@ -31,6 +34,21 @@ type Client struct {
 var rooms []Room
 var clientRoom map[Client]Room
 var publicKeyCode string
+
+func clear() {
+	switch runtime.GOOS {
+	case "linux":
+		cmd := exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	case "windows":
+		cmd := exec.Command("cmd", "/c", "cls")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	default:
+		fmt.Println("Attempted to clear terminal, but OS is not supported.")
+	}
+}
 
 func setup() {
 	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
@@ -102,6 +120,7 @@ func main() {
 func startServer() {
 	port := ":8081"
 	ln, _ := net.Listen("tcp", port)
+	clear()
 	fmt.Println("Server is listening on " + port)
 
 	for {
