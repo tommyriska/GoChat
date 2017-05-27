@@ -55,20 +55,24 @@ func clear() {
 	}
 }
 
-func loadRooms(roomList []Room) {
+func loadRooms() []Room {
 	// read data from rooms file
+	var roomList []Room
 	dat, err := ioutil.ReadFile("rooms.txt")
 	if err != nil {
 		panic(err)
 	}
 
 	roomsString := strings.Split(string(dat), "|")
+	fmt.Println(len(roomsString))
 
-	for _, e := range roomsString {
+	for _, e := range roomsString[0 : len(roomsString)-1] {
 		roomString := strings.Split(e, "-")
 		r := Room{name: roomString[0], welcomeMsg: roomString[1], description: roomString[2]}
-		roomList = append(rooms, r)
+		roomList = append(roomList, r)
 	}
+
+	return roomList
 }
 
 // saves a new room to rooms.txt
@@ -96,8 +100,7 @@ func setup() {
 	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
 	nickCode = "!#28jKas>zzx'**!+?,>lzc012"
 	clientRoom = make(map[Client]Room)
-	makeRoom("Lobby", "Welcome to Lobby")
-	makeRoom("TestRoom", "Welcome to TestRoom")
+	rooms = loadRooms()
 }
 
 // check if []byte contains specific byte
@@ -182,10 +185,10 @@ func main() {
 func startServer() {
 	port := ":8081"
 	ln, _ := net.Listen("tcp", port)
-	clear()
+	//clear()
 	fmt.Println("Server is listening on " + port)
 
-	// accept incomming connectoins, make new client struct and start thread for exchanging keys
+	// accept incomming connections, make new client struct and start thread for exchanging keys
 	for {
 		conn, _ := ln.Accept()
 		newClient := Client{connection: conn}
