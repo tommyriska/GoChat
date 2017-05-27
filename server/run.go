@@ -64,7 +64,6 @@ func loadRooms() []Room {
 	}
 
 	roomsString := strings.Split(string(dat), "|")
-	fmt.Println(len(roomsString))
 
 	for _, e := range roomsString[0 : len(roomsString)-1] {
 		roomString := strings.Split(e, "-")
