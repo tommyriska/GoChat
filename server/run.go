@@ -262,6 +262,9 @@ func checkForCmd(client Client, msg string) bool {
 	if len(msg) > 1 {
 		words := strings.Split(msg[0:len(msg)-1], " ")
 		switch words[0] {
+		case "!help":
+			message := makeBold("!help") + " - This help menu.\n" + makeBold("!room") + " - List all available rooms\n" + makeBold("!room [roomname]") + " - Change room to a specified room.\n"
+			client.sendEncrypted(message)
 		// !room displays a list of available rooms
 		case "!room":
 			// if more than 1 word = we have arguments
