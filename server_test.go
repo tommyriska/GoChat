@@ -87,6 +87,7 @@ func TestSaveRoom(t *testing.T) {
 	var s string = "testName"
 	var w string = "testMsg"
 	var d string = "testDesc"
+	var b bool = false
 
 	saveRoom(s, w, d)
 	testList := loadRooms()
@@ -94,7 +95,11 @@ func TestSaveRoom(t *testing.T) {
 	for i := range testList {
 		if testList[i].name == s {
 			fmt.Println("New room succesfully added to array")
+			b = true
+			break
 		}
 	}
-	fmt.Println("Room not added to array")
+	if b == false {
+		fmt.Println("Room not added to array")
+	}
 }
