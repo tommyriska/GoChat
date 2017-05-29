@@ -2,8 +2,6 @@ package main
 
 import "testing"
 
-/* ***** EVERY TEST MUST BE RUN INDIVIDUALLY ***** */
-
 /* test will check if the key array that is created
 		on the server is the correct size (32 bytes) */
 func TestCreateKey(t *testing.T) {
@@ -71,5 +69,14 @@ func TestMakeRoom(t *testing.T) {
 	}
 	if b != true {
 		fmt.Println("New room not added to array.")
+	}
+}
+
+/* test will check if lobby is empty at start up */
+func TestLoadRooms(t *testing.T) {
+
+	testList := loadRooms()
+	if testList == nil {
+		fmt.Println("Expected populated array, got an empty.")
 	}
 }
