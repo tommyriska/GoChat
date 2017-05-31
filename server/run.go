@@ -55,16 +55,20 @@ func clear() {
 	}
 }
 
+// load rooms from rooms.txt, return []Room
 func loadRooms() []Room {
-	// read data from rooms file
 	var roomList []Room
+
+	// read data from rooms file
 	dat, err := ioutil.ReadFile("rooms.txt")
 	if err != nil {
 		panic(err)
 	}
 
+	// split rooms
 	roomsString := strings.Split(string(dat), "|")
 
+	// make a new room from each string in roomsString
 	for _, e := range roomsString[0 : len(roomsString)-1] {
 		roomString := strings.Split(e, "-")
 		r := Room{name: roomString[0], welcomeMsg: roomString[1], description: roomString[2]}
@@ -94,7 +98,7 @@ func saveRoom(name string, welcomeMsg string, description string) {
 	}
 }
 
-// init
+// init variables
 func setup() {
 	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
 	nickCode = "!#28jKas>zzx'**!+?,>lzc012"
@@ -200,7 +204,10 @@ func (c Client) listener() {
 	quitting := false
 
 	for {
+		// get message
 		message, _ := bufio.NewReader(c.connection).ReadString('\n')
+
+		// check length
 		if len(message) > 0 {
 			msg := message[0 : len(message)-1]
 
@@ -334,43 +341,54 @@ func createKey() []byte {
 
 // encrypt message
 func encrypt(key []byte, text string) string {
+	// []byte of text to encrypt
 	plaintext := []byte(text)
 
+	// get cipher from key
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
 
+	// generating initialization vector
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		panic(err)
 	}
 
+	// encrypting
 	stream := cipher.NewCFBEncrypter(block, iv)
 	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
 
+	// return encrypted text
 	return base64.URLEncoding.EncodeToString(ciphertext)
 }
 
 // decrypt message
 func decrypt(key []byte, cryptoText string) string {
+	// get ciphertext
 	ciphertext, _ := base64.URLEncoding.DecodeString(cryptoText)
 
+	// get cipher from key
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
+
+	// check length
 	if len(ciphertext) < aes.BlockSize {
 		panic("Ciphertext too short")
 	}
 
+	// generate initialization vector
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 
+	// decrypting
 	stream := cipher.NewCFBDecrypter(block, iv)
-
 	stream.XORKeyStream(ciphertext, ciphertext)
 
+	// return decrypted text
 	return fmt.Sprintf("%s", ciphertext)
 }

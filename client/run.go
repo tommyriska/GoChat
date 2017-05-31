@@ -54,7 +54,7 @@ func clear() {
 	}
 }
 
-// prompt user for nickname
+// prompt user for nickname and return it
 func chooseNick() string {
 	fmt.Print("Nickname: ")
 	reader := bufio.NewReader(os.Stdin)
@@ -68,7 +68,7 @@ func chooseNick() string {
 func welcomePrompt() string {
 	clear()
 
-	// user choices
+	// print user choices
 	fmt.Println("Welcome to GoChat!\n")
 	fmt.Println("1 Direct connection")
 	fmt.Println("2 Choose from stored servers")
@@ -78,6 +78,7 @@ func welcomePrompt() string {
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
 
+	// return the chosen action
 	return string(text[0])
 }
 
@@ -348,42 +349,51 @@ func encrypt(key []byte, text string) string {
 	// []byte of text to encrypt
 	plaintext := []byte(text)
 
-	// clear cipher from key
+	// get cipher from key
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
 
+	// generating initialization vector
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		panic(err)
 	}
 
+	// encrypting
 	stream := cipher.NewCFBEncrypter(block, iv)
 	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
 
+	// return encrypted text
 	return base64.URLEncoding.EncodeToString(ciphertext)
 }
 
 // decrypt message
 func decrypt(key []byte, cryptoText string) string {
+	// get ciphertext
 	ciphertext, _ := base64.URLEncoding.DecodeString(cryptoText)
 
+	// get cipher from key
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
+
+	// check length
 	if len(ciphertext) < aes.BlockSize {
 		panic("Ciphertext too short")
 	}
 
+	// generate initialization vector
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 
+	// decrypting
 	stream := cipher.NewCFBDecrypter(block, iv)
-
 	stream.XORKeyStream(ciphertext, ciphertext)
 
+	// return decrypted text
 	return fmt.Sprintf("%s", ciphertext)
 }
