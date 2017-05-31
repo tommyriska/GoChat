@@ -100,6 +100,12 @@ func setup() {
 	nickCode = "!#28jKas>zzx'**!+?,>lzc012"
 	clientRoom = make(map[Client]Room)
 	rooms = loadRooms()
+
+	// if no rooms where loaded (aka no rooms exist), create a lobby
+	if len(rooms) < 1 {
+		saveRoom("Lobby", "Welcome to Lobby", "This is the lobby")
+		rooms = loadRooms()
+	}
 }
 
 // check if []byte contains specific byte
@@ -182,6 +188,8 @@ func main() {
 
 // start server listening
 func startServer() {
+	clear()
+
 	port := ":8081"
 	ln, _ := net.Listen("tcp", port)
 	//clear()
