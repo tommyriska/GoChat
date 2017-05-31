@@ -1,1 +1,1 @@
-Lobby-Welcome to Lobby-This is the lobby|TestRoom-Welcome to TestRoom-This is a test|
+Lobby-Welcome to Lobby-This is the lobby|
