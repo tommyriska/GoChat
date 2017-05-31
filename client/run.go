@@ -42,11 +42,13 @@ type Server struct {
 var commonKey []byte
 var connection net.Conn
 var publicKeyCode string
+var nickCode string
 var nick string
 
 // init variables
 func setup() {
 	publicKeyCode = "ssd990=+?¡][ªs)(sdª]ßð=S)]"
+	nickCode = "!#28jKas>zzx'**!+?,>lzc012"
 }
 
 // clear terminal screen
@@ -66,7 +68,7 @@ func clear() {
 	}
 }
 
-// prompt user for nickname
+// prompt user for nickname and return it
 func chooseNick() string {
 	fmt.Print("Nickname: ")
 	reader := bufio.NewReader(os.Stdin)
@@ -76,29 +78,38 @@ func chooseNick() string {
 	return nickname
 }
 
-// print welcome message and return chosen server address + port
-func welcome() (string, string) {
+// print welcome message and return chosen action
+func welcomePrompt() string {
 	clear()
 
-	// user choices
+	// print user choices
 	fmt.Println("Welcome to GoChat!\n")
 	fmt.Println("1 Direct connection")
 	fmt.Println("2 Choose from stored servers")
 	fmt.Println("3 Add new server\n")
 
+	// prompt for input
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
+
+	// return the chosen action
+	return string(text[0])
+}
+
+// choose server, return address and port
+func chooseServer(choice string) (string, string) {
+	clear()
 
 	var address string
 	var port string
 
-	switch string(text[0]) {
+	switch choice {
 	case "1":
-		address, port = chooseServer()
+		address, port = chooseDirectServer()
 	case "2":
 		address, port = chooseStoredServer()
 	case "3":
-		address, port = chooseServer()
+		address, port = chooseDirectServer()
 
 		// promt for server name
 		fmt.Print("Server name: ")
@@ -181,7 +192,7 @@ func storeNewServer(address string, port string, name string) {
 }
 
 // lets user choose address and port to connect to
-func chooseServer() (string, string) {
+func chooseDirectServer() (string, string) {
 	var address string
 	var port string
 
@@ -266,12 +277,23 @@ func exchangeKeys() {
 	commonKey = k.Bytes()[0:32]
 }
 
+// send nickname to server
+func sendNick() {
+	fmt.Fprintf(connection, encrypt(commonKey, nickCode+nick)+"\n")
+}
+
+// make string bold
+func makeBold(text string) string {
+	return "\033[1m" + text + "\033[0m"
+}
+
 // start the client
 func startClient() {
 	// init
 	setup()
 	// find wich address and port to connect to
-	address, port := welcome()
+	serverChoice := welcomePrompt()
+	address, port := chooseServer(serverChoice)
 	clear()
 	// find the chosen nickname
 	nick = chooseNick()
@@ -281,6 +303,7 @@ func startClient() {
 	if dialServer(address, port) {
 		// exchange keys
 		exchangeKeys()
+		sendNick()
 		fmt.Println("Connected to: " + address + ":" + port)
 
 		// start thread to listen for messages from server
@@ -293,7 +316,7 @@ func startClient() {
 
 			// check user input for commands, if no commands encrypt and send to server
 			if !checkForCmd(connection, text) {
-				cryptText := encrypt(commonKey, "\033[1m"+nick+"\033[0m"+": "+text)
+				cryptText := encrypt(commonKey, text)
 
 				fmt.Fprintf(connection, cryptText+"\n")
 			}
@@ -340,42 +363,51 @@ func encrypt(key []byte, text string) string {
 	// []byte of text to encrypt
 	plaintext := []byte(text)
 
-	// clear cipher from key
+	// get cipher from key
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
 
+	// generating initialization vector
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		panic(err)
 	}
 
+	// encrypting
 	stream := cipher.NewCFBEncrypter(block, iv)
 	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
 
+	// return encrypted text
 	return base64.URLEncoding.EncodeToString(ciphertext)
 }
 
 // decrypt message
 func decrypt(key []byte, cryptoText string) string {
+	// get ciphertext
 	ciphertext, _ := base64.URLEncoding.DecodeString(cryptoText)
 
+	// get cipher from key
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
+
+	// check length
 	if len(ciphertext) < aes.BlockSize {
 		panic("Ciphertext too short")
 	}
 
+	// generate initialization vector
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 
+	// decrypting
 	stream := cipher.NewCFBDecrypter(block, iv)
-
 	stream.XORKeyStream(ciphertext, ciphertext)
 
+	// return decrypted text
 	return fmt.Sprintf("%s", ciphertext)
 }
