@@ -15,23 +15,9 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-
 	"github.com/monnand/dhkx"
 )
 
-<<<<<<< HEAD
-func main() {
-	startClient()
-}
-
-func startClient(){
-	var key string
-	// connect to server!
-	conn, err := net.Dial("tcp", "localhost:8081")
-	if err != nil {
-		fmt.Println("Can't find server.")
-		return
-=======
 // struct for holding server info
 type Server struct {
 	address string
@@ -64,7 +50,6 @@ func clear() {
 		cmd.Run()
 	default:
 		fmt.Println("Attempted to clear terminal, but OS is not supported.")
->>>>>>> Development
 	}
 }
 

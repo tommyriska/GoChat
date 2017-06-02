@@ -14,7 +14,6 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-
 	"github.com/monnand/dhkx"
 )
 
@@ -185,20 +184,11 @@ func exchangeKeys(c Client) {
 	switchRoom(c, rooms[0])
 }
 
-<<<<<<< HEAD
-func startServer(){
-	// create key
-	key = createKey()
 
-	// lobby
-	makeRoom("Lobby", "Welcome to Lobby")
-	makeRoom("TestRoom", "Welcome to TestRoom")
-=======
 func main() {
 	setup()
 	startServer()
 }
->>>>>>> Development
 
 // start server listening
 func startServer() {
@@ -266,13 +256,6 @@ func (c Client) listener() {
 	}
 }
 
-<<<<<<< HEAD
-func main() {
-	startServer()
-}
-
-// check for command
-=======
 // send message to client
 func (c *Client) send(message []byte) {
 	c.connection.Write(message)
@@ -290,7 +273,6 @@ func (c *Client) startThread() {
 }
 
 // check messsage for commands
->>>>>>> Development
 func checkForCmd(client Client, msg string) bool {
 	if len(msg) > 1 {
 		words := strings.Split(msg[0:len(msg)-1], " ")
