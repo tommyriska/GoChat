@@ -14,6 +14,7 @@
 
 ## Note:
   We have some issues with the Windows platform as of now where users cant start the chat. Therefore we don't recommend using that until it is fixed.
+  We do not take any responsibility on using this software. We are by no means any security/encryption experts and can therefore not guarantee that it is safe. We would suggest using Signal for now.
   
 ## License
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
