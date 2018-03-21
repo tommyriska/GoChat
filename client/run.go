@@ -68,10 +68,10 @@ func welcomePrompt() string {
 	clear()
 
 	// print user choices
-	fmt.Println("Welcome to GoChat!\n")
+	fmt.Println("Welcome to GoChat!")
 	fmt.Println("1 Direct connection")
 	fmt.Println("2 Choose from stored servers")
-	fmt.Println("3 Add new server\n")
+	fmt.Println("3 Add new server")
 
 	// prompt for input
 	reader := bufio.NewReader(os.Stdin)
@@ -127,7 +127,7 @@ func chooseStoredServer() (string, string) {
 	servers := strings.Split(string(dat), "|")
 
 	// print servers, and create a struct for each server, add them to the serverArray
-	fmt.Println("Servers:\n")
+	fmt.Println("Servers:")
 	for i, e := range servers {
 		if len(e) > 1 {
 			data := strings.Split(e, "-")
@@ -164,7 +164,7 @@ func storeNewServer(address string, port string, name string) {
 	// convert []byte to string
 	text := string(dat)
 	// create string representing the new server
-	// "|" seperates servers and "-" seperates the server attributes
+	// "|" separates servers and "-" separates the server attributes
 	newServer := address + "-" + port + "-" + name + "|"
 	// append the new server to the servers.txt-content
 	text += newServer
@@ -276,7 +276,7 @@ func makeBold(text string) string {
 func startClient() {
 	// init
 	setup()
-	// find wich address and port to connect to
+	// find which address and port to connect to
 	serverChoice := welcomePrompt()
 	address, port := chooseServer(serverChoice)
 	clear()
